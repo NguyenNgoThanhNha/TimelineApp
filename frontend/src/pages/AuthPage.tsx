@@ -1,5 +1,10 @@
 import { useState, type FormEvent } from 'react';
-import { useAuth } from '../auth/AuthContext';
+import { CalendarDays } from 'lucide-react';
+import { useAuth } from '@/auth/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function AuthPage() {
   const { login, register } = useAuth();
@@ -28,70 +33,90 @@ export function AuthPage() {
   };
 
   return (
-    <div className="auth-wrap">
-      <div className="auth-card">
-        <div className="auth-logo">🗓️</div>
-        <h1>Timeline cá nhân</h1>
-        <p className="auth-sub">
-          {mode === 'login' ? 'Đăng nhập để xem timeline của bạn' : 'Tạo tài khoản mới'}
-        </p>
-
-        <form onSubmit={submit} className="auth-form">
-          {mode === 'register' && (
-            <input
-              className="input"
-              placeholder="Họ tên"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          )}
-          <input
-            className="input"
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            className="input"
-            type="password"
-            placeholder="Mật khẩu"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          {error && <div className="form-error">⚠️ {error}</div>}
-
-          <button className="btn btn-primary btn-block" type="submit" disabled={loading}>
-            {loading ? 'Đang xử lý…' : mode === 'login' ? 'Đăng nhập' : 'Đăng ký'}
-          </button>
-        </form>
-
-        <button
-          className="auth-switch"
-          onClick={() => {
-            setMode(mode === 'login' ? 'register' : 'login');
-            setError('');
-          }}
-        >
-          {mode === 'login' ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập'}
-        </button>
-
-        {mode === 'login' && (
-          <div className="auth-hint">
-            <div>Tài khoản demo:</div>
-            <div>
-              👑 <b>admin@timeline.local</b> / Admin@123 <span className="muted">(Admin — xem tất cả)</span>
-            </div>
-            <div>
-              👤 <b>user@timeline.local</b> / User@123 <span className="muted">(User — xem của mình)</span>
-            </div>
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+      <Card className="w-full max-w-md animate-in fade-in-0 zoom-in-95 duration-300">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <CalendarDays className="size-6" />
           </div>
-        )}
-      </div>
+          <CardTitle className="text-2xl">Timeline cá nhân</CardTitle>
+          <CardDescription>
+            {mode === 'login' ? 'Đăng nhập để quản lý Kanban của bạn' : 'Tạo tài khoản mới'}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <form onSubmit={submit} className="space-y-4">
+            {mode === 'register' && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Họ tên</Label>
+                <Input
+                  id="name"
+                  placeholder="Họ tên"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Mật khẩu</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            <Button className="w-full" type="submit" disabled={loading}>
+              {loading ? 'Đang xử lý…' : mode === 'login' ? 'Đăng nhập' : 'Đăng ký'}
+            </Button>
+          </form>
+
+          <button
+            type="button"
+            className="mt-4 w-full text-center text-sm font-medium text-primary hover:underline"
+            onClick={() => {
+              setMode(mode === 'login' ? 'register' : 'login');
+              setError('');
+            }}
+          >
+            {mode === 'login' ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập'}
+          </button>
+
+          {mode === 'login' && (
+            <div className="mt-6 rounded-lg border bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground">
+              <p className="mb-1 font-medium text-foreground">Tài khoản demo</p>
+              <p>
+                <b>admin@timeline.local</b> / Admin@123 <span>(Admin)</span>
+              </p>
+              <p>
+                <b>user@timeline.local</b> / User@123 <span>(User)</span>
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

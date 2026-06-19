@@ -1,8 +1,15 @@
 import { format } from 'date-fns';
-import { Modal } from './Modal';
-import { StatusBadge } from './StatusBadge';
-import { categoryColor } from '../lib/constants';
-import type { Timeline } from '../types/timeline';
+import { categoryColor, STATUS_META } from '@/lib/constants';
+import type { Timeline } from '@/types/timeline';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 function fmt(d?: string | null): string {
   if (!d) return '—';
@@ -23,53 +30,62 @@ function fmtDateTime(d?: string | null): string {
 }
 
 interface Props {
-  timeline: Timeline;
+  open: boolean;
+  timeline: Timeline | null;
   onClose: () => void;
   onEdit: (t: Timeline) => void;
 }
 
-export function DetailModal({ timeline, onClose, onEdit }: Props) {
+export function DetailModal({ open, timeline, onClose, onEdit }: Props) {
+  if (!timeline) return null;
+
   const catColor = categoryColor(timeline.category);
+  const statusMeta = STATUS_META[timeline.status];
 
   return (
-    <Modal title="Chi tiết timeline" onClose={onClose}>
-      <div className="detail">
-        <h3 className="detail-title">{timeline.title}</h3>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{timeline.title}</DialogTitle>
+        </DialogHeader>
 
-        <div className="detail-row">
-          <StatusBadge status={timeline.status} />
-          <span
-            className="cat-tag"
-            style={{ backgroundColor: `${catColor}1a`, color: catColor }}
-          >
-            {timeline.category}
-          </span>
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline" style={{ borderColor: `${statusMeta.color}55`, color: statusMeta.color }}>
+              {statusMeta.label}
+            </Badge>
+            <Badge
+              variant="outline"
+              className="border-0"
+              style={{ backgroundColor: `${catColor}18`, color: catColor }}
+            >
+              {timeline.category}
+            </Badge>
+          </div>
+
+          <dl className="grid grid-cols-[110px_1fr] gap-x-4 gap-y-2 text-sm">
+            <dt className="text-muted-foreground">Bắt đầu</dt>
+            <dd>{fmt(timeline.startDate)}</dd>
+            <dt className="text-muted-foreground">Kết thúc</dt>
+            <dd>{fmt(timeline.endDate)}</dd>
+            <dt className="text-muted-foreground">Mô tả</dt>
+            <dd>{timeline.description || '—'}</dd>
+            <dt className="text-muted-foreground">Tạo lúc</dt>
+            <dd>{fmtDateTime(timeline.createdAt)}</dd>
+            <dt className="text-muted-foreground">Cập nhật</dt>
+            <dd>{fmtDateTime(timeline.updatedAt)}</dd>
+            <dt className="text-muted-foreground">ID</dt>
+            <dd className="break-all font-mono text-xs text-muted-foreground">{timeline.id}</dd>
+          </dl>
         </div>
 
-        <dl className="detail-grid">
-          <dt>Bắt đầu</dt>
-          <dd>{fmt(timeline.startDate)}</dd>
-          <dt>Kết thúc</dt>
-          <dd>{fmt(timeline.endDate)}</dd>
-          <dt>Mô tả</dt>
-          <dd>{timeline.description || '—'}</dd>
-          <dt>Tạo lúc</dt>
-          <dd>{fmtDateTime(timeline.createdAt)}</dd>
-          <dt>Cập nhật</dt>
-          <dd>{fmtDateTime(timeline.updatedAt)}</dd>
-          <dt>ID</dt>
-          <dd className="mono">{timeline.id}</dd>
-        </dl>
-
-        <div className="form-actions">
-          <button className="btn btn-ghost" onClick={onClose}>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
             Đóng
-          </button>
-          <button className="btn btn-primary" onClick={() => onEdit(timeline)}>
-            Sửa
-          </button>
-        </div>
-      </div>
-    </Modal>
+          </Button>
+          <Button onClick={() => onEdit(timeline)}>Sửa</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
