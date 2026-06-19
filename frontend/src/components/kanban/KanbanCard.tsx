@@ -2,7 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { format } from 'date-fns';
 import { Calendar, GripVertical, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import type { Timeline } from '@/types/timeline';
 import { categoryColor } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -38,37 +38,53 @@ export function KanbanCard({ item, isOverlay, onDetail, onEdit, onDelete }: Prop
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    // Cần cho kéo-thả bằng cảm ứng (mobile) — chặn cuộn khi đang kéo
+    touchAction: 'none' as const,
+  };
+
+  // Chặn pointerdown trên các phần tử tương tác để KHÔNG kích hoạt kéo nhầm
+  const stopDrag = (e: PointerEvent) => e.stopPropagation();
+
+  // Phân biệt "kéo" với "click": vừa kéo xong thì bỏ qua click (tránh mở chi tiết nhầm)
+  const draggedRef = useRef(false);
+  useEffect(() => {
+    if (isDragging) draggedRef.current = true;
+  }, [isDragging]);
+
+  const handleCardClick = () => {
+    if (draggedRef.current) {
+      draggedRef.current = false;
+      return;
+    }
+    onDetail(item);
   };
 
   return (
     <Card
       ref={setNodeRef}
       style={style}
+      // Cho phép kéo cả thẻ (không chỉ riêng icon grip)
+      {...attributes}
+      {...listeners}
       className={cn(
-        'group cursor-grab active:cursor-grabbing transition-shadow hover:shadow-md',
+        'group cursor-grab touch-none select-none transition-shadow hover:shadow-md active:cursor-grabbing',
         isDragging && 'opacity-40',
         isOverlay && 'rotate-2 shadow-xl ring-2 ring-primary/20',
       )}
-      onClick={() => onDetail(item)}
+      onClick={handleCardClick}
     >
       <CardHeader className="space-y-2 p-3 pb-0">
         <div className="flex items-start gap-2">
-          <button
-            type="button"
-            className="mt-0.5 shrink-0 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-            {...attributes}
-            {...listeners}
-            onClick={(e) => e.stopPropagation()}
-            aria-label="Kéo thả"
-          >
+          <span className="mt-0.5 shrink-0 p-0.5 text-muted-foreground/60" aria-hidden>
             <GripVertical className="size-4" />
-          </button>
+          </span>
           <CardTitle className="line-clamp-2 flex-1 text-sm leading-snug">{item.title}</CardTitle>
           <div className="relative">
             <Button
               variant="ghost"
               size="icon"
               className="size-7 shrink-0 opacity-0 group-hover:opacity-100"
+              onPointerDown={stopDrag}
               onClick={(e) => {
                 e.stopPropagation();
                 setMenuOpen((v) => !v);
@@ -79,6 +95,7 @@ export function KanbanCard({ item, isOverlay, onDetail, onEdit, onDelete }: Prop
             {menuOpen && (
               <div
                 className="absolute right-0 top-8 z-10 min-w-[120px] rounded-md border bg-popover p-1 shadow-md"
+                onPointerDown={stopDrag}
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
