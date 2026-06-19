@@ -7,6 +7,8 @@ export type TimelineStatus =
   | 'OnHold'
   | 'Cancelled';
 
+export type Role = 'User' | 'Admin';
+
 export interface Timeline {
   id: string;
   title: string;
@@ -15,11 +17,12 @@ export interface Timeline {
   endDate?: string | null;
   status: TimelineStatus;
   category: string;
+  userId?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// Payload gửi lên khi tạo/sửa
+// Payload gửi lên khi tạo/sửa (userId do server tự gán theo người đăng nhập)
 export interface TimelineRequest {
   title: string;
   description?: string;
@@ -36,4 +39,28 @@ export interface TimelineFilters {
   category?: string;
   from?: string;
   to?: string;
+}
+
+// ----- Auth -----
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+}
+
+export interface AuthResult {
+  token: string;
+  user: AuthUser;
+}
+
+// ----- Dashboard -----
+export interface Stats {
+  total: number;
+  completed: number;
+  upcoming: number;
+  overdue: number;
+  completionRate: number;
+  byStatus: Record<string, number>;
+  byCategory: Record<string, number>;
 }
