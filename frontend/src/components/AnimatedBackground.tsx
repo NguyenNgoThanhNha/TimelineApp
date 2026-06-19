@@ -1,112 +1,84 @@
-// Nền động toàn app — mesh gradient Shadcn + lưới chấm + đỉnh núi mờ (hành trình tới đích).
+// Nền toàn app — aurora đêm sao + chòm sao timeline + sóng mềm.
 
-const ORBS: Array<{
-  w: number;
-  h: number;
-  top?: string;
-  left?: string;
-  right?: string;
-  bottom?: string;
-  color: string;
-  delay: string;
-}> = [
-  { w: 520, h: 520, top: '-12%', left: '-8%', color: 'hsl(240 80% 72%)', delay: '0s' },
-  { w: 480, h: 480, top: '8%', right: '-10%', color: 'hsl(280 70% 74%)', delay: '-9s' },
-  { w: 400, h: 400, bottom: '8%', left: '22%', color: 'hsl(200 75% 72%)', delay: '-16s' },
-  { w: 320, h: 320, bottom: '20%', right: '18%', color: 'hsl(330 65% 78%)', delay: '-5s' },
-];
-
-const SPARKS = Array.from({ length: 14 }, (_, i) => ({
-  left: 6 + i * 6.8,
-  size: 3 + (i % 3),
-  duration: 18 + (i % 5) * 4,
-  delay: -(i * 2.1),
-  opacity: 0.15 + (i % 4) * 0.05,
+const STARS = Array.from({ length: 48 }, (_, i) => ({
+  left: (i * 17 + 3) % 100,
+  top: (i * 23 + 7) % 85,
+  size: 1 + (i % 3),
+  delay: -(i * 0.7),
+  duration: 3 + (i % 4),
 }));
+
+const NODES = [
+  { x: 8, y: 78 },
+  { x: 22, y: 62 },
+  { x: 38, y: 68 },
+  { x: 55, y: 48 },
+  { x: 72, y: 55 },
+  { x: 88, y: 32 },
+];
 
 export function AnimatedBackground() {
   return (
     <div className="bg-scene" aria-hidden="true">
-      <div className="bg-mesh" />
-      <div className="bg-dots" />
-      <div className="bg-noise" />
+      <div className="bg-sky" />
+      <div className="bg-aurora bg-aurora--1" />
+      <div className="bg-aurora bg-aurora--2" />
+      <div className="bg-aurora bg-aurora--3" />
+      <div className="bg-stars" />
 
-      {ORBS.map((orb, i) => (
+      {STARS.map((s, i) => (
         <span
           key={i}
-          className="bg-orb"
-          style={{
-            width: orb.w,
-            height: orb.h,
-            top: orb.top,
-            left: orb.left,
-            right: orb.right,
-            bottom: orb.bottom,
-            background: orb.color,
-            animationDelay: orb.delay,
-          }}
-        />
-      ))}
-
-      {SPARKS.map((s, i) => (
-        <span
-          key={i}
-          className="bg-spark"
+          className="bg-star"
           style={{
             left: `${s.left}%`,
+            top: `${s.top}%`,
             width: s.size,
             height: s.size,
-            opacity: s.opacity,
-            animationDuration: `${s.duration}s`,
             animationDelay: `${s.delay}s`,
+            animationDuration: `${s.duration}s`,
           }}
         />
       ))}
 
-      <svg className="bg-ridge" viewBox="0 0 1440 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <svg className="bg-constellation" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <defs>
-          <linearGradient id="ridge-far" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="hsl(240 30% 88%)" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="hsl(240 30% 88%)" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="ridge-near" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="hsl(248 35% 82%)" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="hsl(248 35% 82%)" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="trail-glow" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="hsl(38 92% 58%)" stopOpacity="0" />
-            <stop offset="50%" stopColor="hsl(38 92% 58%)" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="hsl(38 92% 58%)" stopOpacity="0" />
+          <linearGradient id="line-glow" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stopColor="#818cf8" stopOpacity="0.2" />
+            <stop offset="50%" stopColor="#c084fc" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.8" />
           </linearGradient>
         </defs>
-
         <path
-          fill="url(#ridge-far)"
-          d="M0 320 L0 210 L280 150 L520 220 L760 130 L1040 210 L1280 160 L1440 200 L1440 320 Z"
-        />
-        <path
-          fill="url(#ridge-near)"
-          d="M0 320 L0 260 L340 200 L620 270 L900 185 L1180 260 L1440 220 L1440 320 Z"
-        />
-
-        <path
-          className="bg-trail-glow"
-          d="M80 290 C 320 265, 500 220, 720 185 S 1060 135, 1260 98"
+          className="bg-constellation-line"
+          d={`M ${NODES.map((n) => `${n.x} ${n.y}`).join(' L ')}`}
           fill="none"
         />
-        <path
-          className="bg-trail"
-          d="M80 290 C 320 265, 500 220, 720 185 S 1060 135, 1260 98"
-          fill="none"
-        />
-
-        <g transform="translate(1260 98)">
-          <line className="bg-flagpole" x1="0" y1="0" x2="0" y2="-26" />
-          <path className="bg-flag" d="M0 -26 L20 -21 L0 -16 Z" />
+        {NODES.map((n, i) => (
+          <circle key={i} className="bg-constellation-node" cx={n.x} cy={n.y} r={i === NODES.length - 1 ? 1.2 : 0.8} />
+        ))}
+        <g transform={`translate(${NODES[NODES.length - 1].x} ${NODES[NODES.length - 1].y})`}>
+          <line className="bg-flagpole" x1="0" y1="0" x2="0" y2="-3.5" />
+          <path className="bg-flag" d="M0 -3.5 L2.8 -2.8 L0 -2.1 Z" />
         </g>
       </svg>
 
-      <div className="bg-vignette" />
+      <svg className="bg-wave" viewBox="0 0 1440 200" preserveAspectRatio="none" aria-hidden="true">
+        <path
+          className="bg-wave-layer bg-wave-layer--1"
+          d="M0 120 C480 40 960 160 1440 80 L1440 200 L0 200 Z"
+        />
+        <path
+          className="bg-wave-layer bg-wave-layer--2"
+          d="M0 140 C360 90 720 170 1080 110 C1260 85 1380 95 1440 100 L1440 200 L0 200 Z"
+        />
+        <path
+          className="bg-wave-layer bg-wave-layer--3"
+          d="M0 165 C400 130 800 185 1440 150 L1440 200 L0 200 Z"
+        />
+      </svg>
+
+      <div className="bg-fade-bottom" />
     </div>
   );
 }

@@ -3,8 +3,8 @@ import { CalendarDays, LayoutDashboard, LogOut } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import type { AuthUser } from '@/types/timeline';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/Logo';
+import { HeroBanner } from '@/components/HeroBanner';
 import { cn } from '@/lib/utils';
 
 export type View = 'timeline' | 'dashboard';
@@ -13,6 +13,7 @@ interface Props {
   user: AuthUser;
   view: View;
   onChangeView: (v: View) => void;
+  onAddMilestone?: () => void;
   children: ReactNode;
 }
 
@@ -21,7 +22,7 @@ const NAV = [
   { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
 ];
 
-export function Layout({ user, view, onChangeView, children }: Props) {
+export function Layout({ user, view, onChangeView, onAddMilestone, children }: Props) {
   const { logout } = useAuth();
 
   return (
@@ -32,14 +33,7 @@ export function Layout({ user, view, onChangeView, children }: Props) {
             <Logo className="size-9 shrink-0" />
             <div>
               <p className="text-sm font-semibold leading-none">Timeline cá nhân</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Xin chào, {user.name}
-                {user.role === 'Admin' && (
-                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-[10px]">
-                    Admin
-                  </Badge>
-                )}
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">Quản lý mốc thời gian</p>
             </div>
           </div>
 
@@ -73,6 +67,7 @@ export function Layout({ user, view, onChangeView, children }: Props) {
       </header>
 
       <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">
+        <HeroBanner user={user} view={view} onAddMilestone={onAddMilestone} />
         <div key={view} className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
           {children}
         </div>

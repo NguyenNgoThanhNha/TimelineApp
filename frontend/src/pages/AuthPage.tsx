@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import { Logo } from '@/components/Logo';
+import { AuthHeroBanner } from '@/components/AuthHeroBanner';
 import { useAuth } from '@/auth/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Logo } from '@/components/Logo';
 
 export function AuthPage() {
   const { login, register } = useAuth();
@@ -33,10 +34,12 @@ export function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="glass-panel w-full max-w-md animate-in fade-in-0 zoom-in-95 duration-500">
+    <div className="mx-auto grid min-h-screen max-w-6xl items-center gap-6 p-4 lg:grid-cols-2 lg:p-8">
+      <AuthHeroBanner />
+
+      <Card className="glass-panel w-full animate-in fade-in-0 zoom-in-95 duration-500">
         <CardHeader className="text-center">
-          <Logo className="mx-auto mb-2 size-14" />
+          <Logo className="mx-auto mb-2 size-14 lg:hidden" />
           <CardTitle className="text-2xl">Timeline cá nhân</CardTitle>
           <CardDescription>
             {mode === 'login' ? 'Đăng nhập để quản lý Kanban của bạn' : 'Tạo tài khoản mới'}

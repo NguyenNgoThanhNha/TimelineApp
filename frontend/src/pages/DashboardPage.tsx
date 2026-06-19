@@ -152,11 +152,6 @@ export function DashboardPage() {
 
   return (
     <>
-      <div className="glass-panel mb-6 rounded-2xl px-5 py-4">
-        <h2 className="text-2xl font-bold tracking-tight">Dashboard thống kê</h2>
-        <p className="text-sm text-muted-foreground">Tổng quan tiến độ timeline của bạn</p>
-      </div>
-
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard label="Tổng mốc" value={stats.total} icon={Pin} index={0} />
         <KpiCard label="Hoàn thành" value={stats.completed} icon={CheckCircle2} index={1} />

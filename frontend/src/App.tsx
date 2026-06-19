@@ -8,6 +8,7 @@ import { Layout, type View } from '@/components/Layout';
 export default function App() {
   const { user, isLoading } = useAuth();
   const [view, setView] = useState<View>('timeline');
+  const [formOpen, setFormOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -23,8 +24,17 @@ export default function App() {
   }
 
   return (
-    <Layout user={user} view={view} onChangeView={setView}>
-      {view === 'timeline' ? <TimelinePage /> : <DashboardPage />}
+    <Layout
+      user={user}
+      view={view}
+      onChangeView={setView}
+      onAddMilestone={() => setFormOpen(true)}
+    >
+      {view === 'timeline' ? (
+        <TimelinePage formOpen={formOpen} onFormOpenChange={setFormOpen} />
+      ) : (
+        <DashboardPage />
+      )}
     </Layout>
   );
 }

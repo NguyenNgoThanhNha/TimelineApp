@@ -104,17 +104,20 @@
     transition-duration: 0.01ms !important;
   }
 
-  .bg-orb,
-  .bg-spark,
-  .bg-trail,
-  .bg-trail-glow,
-  .bg-flag {
+  .bg-aurora,
+  .bg-star,
+  .bg-constellation-line,
+  .bg-flag,
+  .bg-wave-layer,
+  .hero-banner-aurora,
+  .auth-hero-path,
+  .auth-hero-flag {
     animation: none !important;
   }
 }
 
 /* ===================================================================
-   Nền toàn app — mesh Shadcn + lưới chấm + glass UI
+   Nền aurora đêm sao + banner hero
    =================================================================== */
 .bg-scene {
   position: fixed;
@@ -122,172 +125,257 @@
   z-index: -10;
   overflow: hidden;
   pointer-events: none;
-  background: hsl(var(--background));
 }
 
-.bg-mesh {
+.bg-sky {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(900px 480px at 12% -5%, hsl(240 65% 96% / 0.95), transparent 58%),
-    radial-gradient(780px 420px at 92% 8%, hsl(280 60% 96% / 0.9), transparent 55%),
-    radial-gradient(680px 380px at 48% 105%, hsl(200 55% 95% / 0.85), transparent 52%),
-    radial-gradient(520px 320px at 78% 88%, hsl(330 50% 96% / 0.6), transparent 50%),
-    linear-gradient(165deg, hsl(0 0% 99%) 0%, hsl(240 20% 98%) 42%, hsl(240 15% 97%) 100%);
+    radial-gradient(ellipse 120% 80% at 50% -20%, hsl(250 60% 18%), transparent 55%),
+    radial-gradient(ellipse 90% 60% at 0% 50%, hsl(280 50% 14%), transparent 50%),
+    radial-gradient(ellipse 80% 50% at 100% 80%, hsl(220 55% 12%), transparent 45%),
+    linear-gradient(180deg, hsl(240 25% 8%) 0%, hsl(250 30% 6%) 45%, hsl(260 20% 5%) 100%);
 }
 
-.dark .bg-mesh {
-  background:
-    radial-gradient(900px 480px at 12% -5%, hsl(240 40% 14% / 0.9), transparent 58%),
-    radial-gradient(780px 420px at 92% 8%, hsl(280 35% 14% / 0.85), transparent 55%),
-    radial-gradient(680px 380px at 48% 105%, hsl(200 30% 12% / 0.7), transparent 52%),
-    linear-gradient(165deg, hsl(240 10% 6%) 0%, hsl(240 12% 8%) 100%);
+.bg-aurora {
+  position: absolute;
+  width: 140%;
+  height: 60%;
+  left: -20%;
+  filter: blur(60px);
+  opacity: 0.55;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  animation: auroraShift 18s ease-in-out infinite;
 }
 
-.bg-dots {
+.bg-aurora--1 {
+  top: -15%;
+  background: linear-gradient(120deg, transparent, hsl(270 80% 55%), hsl(200 90% 50%), transparent);
+  animation-delay: 0s;
+}
+
+.bg-aurora--2 {
+  top: 5%;
+  background: linear-gradient(200deg, transparent, hsl(320 70% 50%), hsl(260 80% 55%), transparent);
+  animation-delay: -6s;
+  opacity: 0.4;
+}
+
+.bg-aurora--3 {
+  top: 20%;
+  height: 40%;
+  background: linear-gradient(90deg, transparent, hsl(190 85% 45%), hsl(240 75% 55%), transparent);
+  animation-delay: -12s;
+  opacity: 0.35;
+}
+
+@keyframes auroraShift {
+  0%, 100% { transform: translateX(0) skewY(0deg) scale(1); }
+  33% { transform: translateX(4%) skewY(-2deg) scale(1.05); }
+  66% { transform: translateX(-3%) skewY(1deg) scale(0.98); }
+}
+
+.bg-stars {
   position: absolute;
   inset: 0;
-  opacity: 0.45;
-  background-image: radial-gradient(hsl(var(--foreground) / 0.07) 1px, transparent 1px);
-  background-size: 22px 22px;
-  mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 20%, transparent 100%);
+  background-image: radial-gradient(hsl(0 0% 100% / 0.15) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(180deg, black 0%, black 60%, transparent 100%);
 }
 
-.dark .bg-dots {
-  opacity: 0.25;
-  background-image: radial-gradient(hsl(var(--foreground) / 0.12) 1px, transparent 1px);
+.bg-star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  opacity: 0;
+  animation: starTwinkle ease-in-out infinite;
 }
 
-.bg-noise {
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.8); }
+  50% { opacity: 0.9; transform: scale(1.2); }
+}
+
+.bg-constellation {
   position: absolute;
   inset: 0;
-  opacity: 0.035;
-  mix-blend-mode: soft-light;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  width: 100%;
+  height: 70%;
+  opacity: 0.35;
 }
 
-.bg-orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(80px);
-  opacity: 0.38;
-  animation: orbDrift 28s ease-in-out infinite;
-  will-change: transform;
+.bg-constellation-line {
+  stroke: url(#line-glow);
+  stroke-width: 0.15;
+  stroke-dasharray: 1 1.5;
+  animation: constellationPulse 4s ease-in-out infinite;
 }
 
-.dark .bg-orb {
-  opacity: 0.22;
-  filter: blur(90px);
+@keyframes constellationPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.85; }
 }
 
-@keyframes orbDrift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(36px, -28px) scale(1.08); }
-  50% { transform: translate(-24px, 18px) scale(0.94); }
-  75% { transform: translate(18px, 32px) scale(1.04); }
+.bg-constellation-node {
+  fill: white;
+  opacity: 0.7;
 }
 
-.bg-spark {
-  position: absolute;
-  bottom: -16px;
-  border-radius: 9999px;
-  background: hsl(var(--primary) / 0.35);
-  animation-name: sparkRise;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  will-change: transform, opacity;
+.bg-flagpole {
+  stroke: white;
+  stroke-width: 0.12;
+  opacity: 0.6;
 }
 
-@keyframes sparkRise {
-  0% { transform: translateY(0) scale(0.5); opacity: 0; }
-  15% { opacity: 0.5; }
-  85% { opacity: 0.35; }
-  100% { transform: translateY(-100vh) translateX(12px) scale(1); opacity: 0; }
+.bg-flag {
+  fill: #fbbf24;
+  animation: flagSway 3s ease-in-out infinite;
 }
 
-.bg-ridge {
+@keyframes flagSway {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.85); }
+}
+
+.bg-wave {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 38vh;
-  min-height: 200px;
-  opacity: 0.85;
+  height: 28vh;
+  min-height: 160px;
 }
 
-.dark .bg-ridge {
-  opacity: 0.35;
+.bg-wave-layer {
+  animation: waveFloat 8s ease-in-out infinite;
 }
 
-.bg-trail {
-  stroke: hsl(38 92% 55%);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-dasharray: 8 12;
-  opacity: 0.75;
-  animation: trailFlow 3s linear infinite;
+.bg-wave-layer--1 {
+  fill: hsl(250 40% 12% / 0.6);
+  animation-delay: 0s;
 }
 
-.bg-trail-glow {
-  stroke: url(#trail-glow);
-  stroke-width: 6;
-  stroke-linecap: round;
-  stroke-dasharray: 8 12;
-  opacity: 0.35;
-  filter: blur(2px);
-  animation: trailFlow 3s linear infinite;
+.bg-wave-layer--2 {
+  fill: hsl(260 35% 10% / 0.5);
+  animation-delay: -2s;
 }
 
-@keyframes trailFlow {
-  to { stroke-dashoffset: -40; }
+.bg-wave-layer--3 {
+  fill: hsl(var(--background) / 0.85);
+  animation-delay: -4s;
 }
 
-.bg-flagpole {
-  stroke: hsl(var(--foreground) / 0.35);
-  stroke-width: 2;
-  stroke-linecap: round;
+@keyframes waveFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
-.bg-flag {
-  fill: hsl(38 95% 55%);
-  transform-box: fill-box;
-  transform-origin: left center;
-  animation: flagSway 2.8s ease-in-out infinite;
-}
-
-@keyframes flagSway {
-  0%, 100% { transform: scaleX(1) skewY(0deg); }
-  50% { transform: scaleX(0.86) skewY(-2deg); }
-}
-
-.bg-vignette {
+.bg-fade-bottom {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 120% 90% at 50% 50%, transparent 40%, hsl(var(--background) / 0.55) 100%);
-  pointer-events: none;
+  background: linear-gradient(180deg, transparent 55%, hsl(var(--background)) 100%);
 }
 
-.dark .bg-vignette {
-  background: radial-gradient(ellipse 120% 90% at 50% 50%, transparent 35%, hsl(var(--background) / 0.65) 100%);
+/* --- Hero banner --- */
+.hero-banner {
+  background: linear-gradient(135deg, hsl(250 55% 22%) 0%, hsl(270 60% 28%) 50%, hsl(290 50% 24%) 100%);
 }
 
-/* Glass panels dùng chung */
+.hero-banner-bg,
+.auth-hero-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.hero-banner-aurora {
+  position: absolute;
+  width: 120%;
+  height: 200%;
+  filter: blur(40px);
+  opacity: 0.5;
+  mix-blend-mode: screen;
+  animation: bannerAurora 12s ease-in-out infinite;
+}
+
+.hero-banner-aurora--1 {
+  top: -80%;
+  left: -10%;
+  background: linear-gradient(90deg, transparent, hsl(200 90% 60%), hsl(280 80% 65%), transparent);
+}
+
+.hero-banner-aurora--2 {
+  top: -60%;
+  right: -20%;
+  background: linear-gradient(270deg, transparent, hsl(320 70% 60%), hsl(260 80% 55%), transparent);
+  animation-delay: -4s;
+}
+
+@keyframes bannerAurora {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  50% { transform: translateX(5%) rotate(2deg); }
+}
+
+.hero-banner-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background-image:
+    linear-gradient(hsl(0 0% 100% / 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(0 0% 100% / 0.5) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black, transparent);
+}
+
+.hero-banner-wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+}
+
+/* --- Auth hero (desktop) --- */
+.auth-hero {
+  min-height: 520px;
+  background: linear-gradient(145deg, hsl(248 58% 18%) 0%, hsl(270 55% 22%) 45%, hsl(290 48% 20%) 100%);
+}
+
+.auth-hero-constellation {
+  position: absolute;
+  right: -5%;
+  bottom: 10%;
+  width: 55%;
+  opacity: 0.5;
+}
+
+.auth-hero-path {
+  animation: constellationPulse 5s ease-in-out infinite;
+}
+
+.auth-hero-flag {
+  animation: flagSway 2.5s ease-in-out infinite;
+}
+
+/* Glass panels */
 .glass-panel {
-  @apply border border-border/50 bg-card/65 shadow-lg shadow-black/[0.04] backdrop-blur-xl;
+  @apply border border-border/50 bg-card/70 shadow-lg shadow-black/[0.06] backdrop-blur-xl;
 }
 
 .dark .glass-panel {
-  @apply bg-card/45 shadow-black/20;
+  @apply bg-card/50 shadow-black/25;
 }
 
 .glass-header {
-  @apply border-border/40 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55;
+  @apply border-border/40 bg-background/75 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60;
 }
 
 .glass-column {
-  @apply border-border/45 bg-card/55 shadow-sm shadow-black/[0.03] backdrop-blur-md;
+  @apply border-border/45 bg-card/60 shadow-sm shadow-black/[0.04] backdrop-blur-md;
 }
 
 .glass-column-over {
-  @apply border-primary/40 bg-card/70 ring-2 ring-primary/15 shadow-md;
+  @apply border-primary/40 bg-card/75 ring-2 ring-primary/20 shadow-md;
 }

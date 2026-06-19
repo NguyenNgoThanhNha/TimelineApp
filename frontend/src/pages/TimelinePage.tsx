@@ -13,9 +13,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Timeline, TimelineFilters } from '@/types/timeline';
 
-export function TimelinePage() {
+interface Props {
+  formOpen: boolean;
+  onFormOpenChange: (open: boolean) => void;
+}
+
+export function TimelinePage({ formOpen, onFormOpenChange }: Props) {
   const [filters, setFilters] = useState<TimelineFilters>({});
-  const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Timeline | null>(null);
   const [detail, setDetail] = useState<Timeline | null>(null);
 
@@ -25,11 +29,11 @@ export function TimelinePage() {
 
   const openCreate = () => {
     setEditing(null);
-    setFormOpen(true);
+    onFormOpenChange(true);
   };
   const openEdit = (t: Timeline) => {
     setEditing(t);
-    setFormOpen(true);
+    onFormOpenChange(true);
   };
 
   const handleStatusChange = (id: string, status: Timeline['status']) => {
@@ -46,17 +50,6 @@ export function TimelinePage() {
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="glass-panel rounded-2xl px-5 py-4">
-          <h2 className="text-2xl font-bold tracking-tight">Bảng Kanban</h2>
-          <p className="text-sm text-muted-foreground">Kéo thả card giữa các cột để đổi trạng thái</p>
-        </div>
-        <Button className="shadow-md shadow-primary/10" onClick={openCreate}>
-          <Plus className="size-4" />
-          Thêm mốc
-        </Button>
-      </div>
-
       <Filters filters={filters} onChange={setFilters} hideStatus />
 
       {isLoading && (
@@ -99,7 +92,11 @@ export function TimelinePage() {
         />
       )}
 
-      <TimelineForm open={formOpen} initial={editing} onClose={() => setFormOpen(false)} />
+      <TimelineForm
+        open={formOpen}
+        initial={editing}
+        onClose={() => onFormOpenChange(false)}
+      />
 
       <DetailModal
         open={!!detail}
