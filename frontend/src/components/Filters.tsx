@@ -20,9 +20,9 @@ export function Filters({ filters, onChange, hideStatus }: Props) {
   );
 
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-2">
+    <div className="glass-panel mb-6 flex flex-wrap items-center gap-2 rounded-xl p-3">
       <Input
-        className="max-w-xs"
+        className="max-w-xs border-border/60 bg-background/50 backdrop-blur-sm"
         placeholder="Tìm theo tiêu đề hoặc mô tả…"
         value={filters.search ?? ''}
         onChange={(e) => update({ search: e.target.value || undefined })}
@@ -30,7 +30,7 @@ export function Filters({ filters, onChange, hideStatus }: Props) {
 
       {!hideStatus && (
         <select
-          className="flex h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex h-9 rounded-md border border-input/70 bg-background/50 px-3 text-sm shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           value={filters.status ?? ''}
           onChange={(e) =>
             update({ status: (e.target.value || undefined) as TimelineStatus | undefined })
@@ -46,7 +46,7 @@ export function Filters({ filters, onChange, hideStatus }: Props) {
       )}
 
       <select
-        className="flex h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex h-9 rounded-md border border-input/70 bg-background/50 px-3 text-sm shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         value={filters.category ?? ''}
         onChange={(e) => update({ category: e.target.value || undefined })}
       >
@@ -61,14 +61,14 @@ export function Filters({ filters, onChange, hideStatus }: Props) {
       <Input
         type="date"
         title="Từ ngày"
-        className="w-auto"
+        className="w-auto border-border/60 bg-background/50 backdrop-blur-sm"
         value={filters.from ?? ''}
         onChange={(e) => update({ from: e.target.value || undefined })}
       />
       <Input
         type="date"
         title="Đến ngày"
-        className="w-auto"
+        className="w-auto border-border/60 bg-background/50 backdrop-blur-sm"
         value={filters.to ?? ''}
         onChange={(e) => update({ to: e.target.value || undefined })}
       />

@@ -34,7 +34,7 @@ export function AuthPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md border-border/60 bg-card/80 shadow-xl backdrop-blur animate-in fade-in-0 zoom-in-95 duration-300">
+      <Card className="glass-panel w-full max-w-md animate-in fade-in-0 zoom-in-95 duration-500">
         <CardHeader className="text-center">
           <Logo className="mx-auto mb-2 size-14" />
           <CardTitle className="text-2xl">Timeline cá nhân</CardTitle>
@@ -103,7 +103,7 @@ export function AuthPage() {
           </button>
 
           {mode === 'login' && (
-            <div className="mt-6 rounded-lg border bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground">
+            <div className="mt-6 rounded-lg border border-border/50 bg-background/40 p-3 text-xs leading-relaxed text-muted-foreground backdrop-blur-sm">
               <p className="mb-1 font-medium text-foreground">Tài khoản demo</p>
               <p>
                 <b>admin@timeline.local</b> / Admin@123 <span>(Admin)</span>

@@ -41,7 +41,7 @@ function KpiCard({
 
   return (
     <Card
-      className={cn('animate-in fade-in-0 slide-in-from-bottom-2 fill-mode-both', className)}
+      className={cn('glass-panel animate-in fade-in-0 slide-in-from-bottom-2 fill-mode-both', className)}
       style={{ animationDelay: `${index * 80}ms` }}
     >
       <CardContent className="flex items-center gap-4 p-4">
@@ -127,16 +127,18 @@ export function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center gap-3 py-24 text-muted-foreground">
-        <span className="size-5 animate-spin rounded-full border-2 border-muted border-t-primary" />
-        Đang tải thống kê…
-      </div>
+      <Card className="glass-panel">
+        <CardContent className="flex items-center justify-center gap-3 py-24 text-muted-foreground">
+          <span className="size-5 animate-spin rounded-full border-2 border-muted border-t-primary" />
+          Đang tải thống kê…
+        </CardContent>
+      </Card>
     );
   }
 
   if (isError) {
     return (
-      <Card className="border-destructive/30 bg-destructive/5">
+      <Card className="glass-panel border-destructive/30 bg-destructive/5">
         <CardContent className="py-8 text-center text-destructive">
           {(error as Error)?.message}
         </CardContent>
@@ -150,7 +152,7 @@ export function DashboardPage() {
 
   return (
     <>
-      <div className="mb-6">
+      <div className="glass-panel mb-6 rounded-2xl px-5 py-4">
         <h2 className="text-2xl font-bold tracking-tight">Dashboard thống kê</h2>
         <p className="text-sm text-muted-foreground">Tổng quan tiến độ timeline của bạn</p>
       </div>
@@ -163,7 +165,7 @@ export function DashboardPage() {
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-[280px_1fr]">
-        <Card className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 fill-mode-both" style={{ animationDelay: '200ms' }}>
+        <Card className="glass-panel animate-in fade-in-0 slide-in-from-bottom-2 duration-300 fill-mode-both" style={{ animationDelay: '200ms' }}>
           <CardHeader>
             <CardTitle className="text-base">Tỉ lệ hoàn thành</CardTitle>
           </CardHeader>
@@ -172,7 +174,7 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 fill-mode-both" style={{ animationDelay: '280ms' }}>
+        <Card className="glass-panel animate-in fade-in-0 slide-in-from-bottom-2 duration-300 fill-mode-both" style={{ animationDelay: '280ms' }}>
           <CardHeader>
             <CardTitle className="text-base">Theo trạng thái</CardTitle>
           </CardHeader>
@@ -191,7 +193,7 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      <Card className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 fill-mode-both" style={{ animationDelay: '360ms' }}>
+      <Card className="glass-panel animate-in fade-in-0 slide-in-from-bottom-2 duration-300 fill-mode-both" style={{ animationDelay: '360ms' }}>
         <CardHeader>
           <CardTitle className="text-base">Theo danh mục</CardTitle>
         </CardHeader>

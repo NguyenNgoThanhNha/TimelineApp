@@ -47,11 +47,11 @@ export function TimelinePage() {
   return (
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="glass-panel rounded-2xl px-5 py-4">
           <h2 className="text-2xl font-bold tracking-tight">Bảng Kanban</h2>
           <p className="text-sm text-muted-foreground">Kéo thả card giữa các cột để đổi trạng thái</p>
         </div>
-        <Button onClick={openCreate}>
+        <Button className="shadow-md shadow-primary/10" onClick={openCreate}>
           <Plus className="size-4" />
           Thêm mốc
         </Button>
@@ -60,7 +60,7 @@ export function TimelinePage() {
       <Filters filters={filters} onChange={setFilters} hideStatus />
 
       {isLoading && (
-        <Card>
+        <Card className="glass-panel">
           <CardContent className="flex items-center justify-center gap-3 py-16 text-muted-foreground">
             <span className="size-5 animate-spin rounded-full border-2 border-muted border-t-primary" />
             Đang tải dữ liệu…
@@ -69,7 +69,7 @@ export function TimelinePage() {
       )}
 
       {isError && (
-        <Card className="border-destructive/30 bg-destructive/5">
+        <Card className="glass-panel border-destructive/30 bg-destructive/5">
           <CardContent className="py-8 text-center text-destructive">
             {(error as Error)?.message ?? 'Lỗi không xác định'}
           </CardContent>
@@ -77,7 +77,7 @@ export function TimelinePage() {
       )}
 
       {data && !isLoading && data.length === 0 && (
-        <Card>
+        <Card className="glass-panel">
           <CardContent className="flex flex-col items-center gap-2 py-16 text-center">
             <Search className="size-10 text-muted-foreground/50" />
             <p className="font-medium">Chưa có timeline nào khớp</p>

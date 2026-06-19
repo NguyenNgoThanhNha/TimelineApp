@@ -67,9 +67,9 @@ export function KanbanCard({ item, isOverlay, onDetail, onEdit, onDelete }: Prop
       {...attributes}
       {...listeners}
       className={cn(
-        'group cursor-grab touch-none select-none transition-shadow hover:shadow-md active:cursor-grabbing',
+        'glass-panel group cursor-grab touch-none select-none transition-all hover:shadow-lg hover:-translate-y-0.5 active:cursor-grabbing',
         isDragging && 'opacity-40',
-        isOverlay && 'rotate-2 shadow-xl ring-2 ring-primary/20',
+        isOverlay && 'rotate-2 shadow-xl ring-2 ring-primary/25 scale-105',
       )}
       onClick={handleCardClick}
     >
@@ -94,7 +94,7 @@ export function KanbanCard({ item, isOverlay, onDetail, onEdit, onDelete }: Prop
             </Button>
             {menuOpen && (
               <div
-                className="absolute right-0 top-8 z-10 min-w-[120px] rounded-md border bg-popover p-1 shadow-md"
+                className="absolute right-0 top-8 z-10 min-w-[120px] rounded-md border border-border/50 bg-popover/95 p-1 shadow-lg backdrop-blur-md"
                 onPointerDown={stopDrag}
                 onClick={(e) => e.stopPropagation()}
               >

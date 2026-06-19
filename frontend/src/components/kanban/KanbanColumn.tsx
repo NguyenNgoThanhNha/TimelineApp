@@ -22,11 +22,11 @@ export function KanbanColumn({ status, label, items, onDetail, onEdit, onDelete 
   return (
     <div
       className={cn(
-        'flex w-72 shrink-0 flex-col rounded-xl border bg-muted/40 transition-colors',
-        isOver && 'border-primary/50 bg-accent/50 ring-2 ring-primary/20',
+        'glass-column flex w-72 shrink-0 flex-col rounded-xl transition-all duration-200',
+        isOver && 'glass-column-over scale-[1.01]',
       )}
     >
-      <div className="flex items-center justify-between gap-2 border-b px-3 py-3">
+      <div className="flex items-center justify-between gap-2 border-b border-border/50 px-3 py-3">
         <div className="flex items-center gap-2">
           <span className="size-2 rounded-full" style={{ backgroundColor: meta.color }} />
           <h3 className="text-sm font-semibold">{label}</h3>
@@ -50,7 +50,7 @@ export function KanbanColumn({ status, label, items, onDetail, onEdit, onDelete 
         </SortableContext>
 
         {items.length === 0 && (
-          <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/80 p-4 text-center text-xs text-muted-foreground">
+          <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/60 bg-background/30 p-4 text-center text-xs text-muted-foreground backdrop-blur-sm">
             Kéo thả card vào đây
           </div>
         )}

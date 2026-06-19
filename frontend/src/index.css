@@ -103,94 +103,191 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  .bg-orb,
+  .bg-spark,
+  .bg-trail,
+  .bg-trail-glow,
+  .bg-flag {
+    animation: none !important;
+  }
 }
 
 /* ===================================================================
-   Nền động — chủ đề "Kiên trì leo dốc tới đích" (hiện trên mọi trang)
+   Nền toàn app — mesh Shadcn + lưới chấm + glass UI
    =================================================================== */
-.bg-animated {
+.bg-scene {
   position: fixed;
   inset: 0;
   z-index: -10;
   overflow: hidden;
   pointer-events: none;
-  background:
-    radial-gradient(1100px 520px at 8% -8%, hsl(243 90% 96%), transparent 60%),
-    radial-gradient(900px 520px at 100% 4%, hsl(278 85% 96%), transparent 55%),
-    radial-gradient(800px 460px at 50% 110%, hsl(150 70% 95%), transparent 55%),
-    linear-gradient(180deg, #fafbff 0%, #f3f5ff 55%, #eef1fb 100%);
+  background: hsl(var(--background));
 }
-.dark .bg-animated {
+
+.bg-mesh {
+  position: absolute;
+  inset: 0;
   background:
-    radial-gradient(1000px 520px at 8% -8%, hsl(243 60% 16%), transparent 60%),
-    radial-gradient(900px 520px at 100% 4%, hsl(278 55% 16%), transparent 55%),
-    linear-gradient(180deg, #0b0b14 0%, #0e0f1d 100%);
+    radial-gradient(900px 480px at 12% -5%, hsl(240 65% 96% / 0.95), transparent 58%),
+    radial-gradient(780px 420px at 92% 8%, hsl(280 60% 96% / 0.9), transparent 55%),
+    radial-gradient(680px 380px at 48% 105%, hsl(200 55% 95% / 0.85), transparent 52%),
+    radial-gradient(520px 320px at 78% 88%, hsl(330 50% 96% / 0.6), transparent 50%),
+    linear-gradient(165deg, hsl(0 0% 99%) 0%, hsl(240 20% 98%) 42%, hsl(240 15% 97%) 100%);
+}
+
+.dark .bg-mesh {
+  background:
+    radial-gradient(900px 480px at 12% -5%, hsl(240 40% 14% / 0.9), transparent 58%),
+    radial-gradient(780px 420px at 92% 8%, hsl(280 35% 14% / 0.85), transparent 55%),
+    radial-gradient(680px 380px at 48% 105%, hsl(200 30% 12% / 0.7), transparent 52%),
+    linear-gradient(165deg, hsl(240 10% 6%) 0%, hsl(240 12% 8%) 100%);
+}
+
+.bg-dots {
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  background-image: radial-gradient(hsl(var(--foreground) / 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, black 20%, transparent 100%);
+}
+
+.dark .bg-dots {
+  opacity: 0.25;
+  background-image: radial-gradient(hsl(var(--foreground) / 0.12) 1px, transparent 1px);
+}
+
+.bg-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .bg-orb {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(70px);
-  opacity: 0.32;
-  animation: orbFloat 24s ease-in-out infinite;
+  filter: blur(80px);
+  opacity: 0.38;
+  animation: orbDrift 28s ease-in-out infinite;
   will-change: transform;
 }
-@keyframes orbFloat {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(46px, -34px) scale(1.12); }
-  66% { transform: translate(-34px, 26px) scale(0.92); }
+
+.dark .bg-orb {
+  opacity: 0.22;
+  filter: blur(90px);
 }
 
-.bg-particle {
+@keyframes orbDrift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(36px, -28px) scale(1.08); }
+  50% { transform: translate(-24px, 18px) scale(0.94); }
+  75% { transform: translate(18px, 32px) scale(1.04); }
+}
+
+.bg-spark {
   position: absolute;
-  bottom: -24px;
+  bottom: -16px;
   border-radius: 9999px;
-  opacity: 0;
-  animation-name: riseUp;
-  animation-timing-function: linear;
+  background: hsl(var(--primary) / 0.35);
+  animation-name: sparkRise;
+  animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
   will-change: transform, opacity;
 }
-@keyframes riseUp {
-  0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
-  12% { opacity: 0.65; }
-  88% { opacity: 0.65; }
-  100% { transform: translateY(-104vh) translateX(28px) scale(1); opacity: 0; }
+
+@keyframes sparkRise {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  15% { opacity: 0.5; }
+  85% { opacity: 0.35; }
+  100% { transform: translateY(-100vh) translateX(12px) scale(1); opacity: 0; }
 }
 
-.bg-mountains {
+.bg-ridge {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 42vh;
-  min-height: 230px;
+  height: 38vh;
+  min-height: 200px;
+  opacity: 0.85;
 }
-.bg-mtn-back { fill: hsl(243 55% 87%); opacity: 0.5; }
-.bg-mtn-front { fill: hsl(248 50% 79%); opacity: 0.6; }
-.dark .bg-mtn-back { fill: hsl(243 35% 20%); }
-.dark .bg-mtn-front { fill: hsl(248 38% 26%); }
+
+.dark .bg-ridge {
+  opacity: 0.35;
+}
 
 .bg-trail {
-  stroke: hsl(38 95% 55%);
-  stroke-width: 3;
+  stroke: hsl(38 92% 55%);
+  stroke-width: 2.5;
   stroke-linecap: round;
-  stroke-dasharray: 9 13;
-  opacity: 0.85;
-  animation: trailMove 2.4s linear infinite;
-}
-@keyframes trailMove {
-  to { stroke-dashoffset: -44; }
+  stroke-dasharray: 8 12;
+  opacity: 0.75;
+  animation: trailFlow 3s linear infinite;
 }
 
-.bg-flagpole { stroke: hsl(220 15% 38%); stroke-width: 2.5; stroke-linecap: round; }
+.bg-trail-glow {
+  stroke: url(#trail-glow);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 8 12;
+  opacity: 0.35;
+  filter: blur(2px);
+  animation: trailFlow 3s linear infinite;
+}
+
+@keyframes trailFlow {
+  to { stroke-dashoffset: -40; }
+}
+
+.bg-flagpole {
+  stroke: hsl(var(--foreground) / 0.35);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
 .bg-flag {
-  fill: hsl(0 80% 60%);
+  fill: hsl(38 95% 55%);
   transform-box: fill-box;
   transform-origin: left center;
-  animation: flagWave 2.2s ease-in-out infinite;
+  animation: flagSway 2.8s ease-in-out infinite;
 }
-@keyframes flagWave {
-  0%, 100% { transform: scaleX(1); }
-  50% { transform: scaleX(0.82); }
+
+@keyframes flagSway {
+  0%, 100% { transform: scaleX(1) skewY(0deg); }
+  50% { transform: scaleX(0.86) skewY(-2deg); }
+}
+
+.bg-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 120% 90% at 50% 50%, transparent 40%, hsl(var(--background) / 0.55) 100%);
+  pointer-events: none;
+}
+
+.dark .bg-vignette {
+  background: radial-gradient(ellipse 120% 90% at 50% 50%, transparent 35%, hsl(var(--background) / 0.65) 100%);
+}
+
+/* Glass panels dùng chung */
+.glass-panel {
+  @apply border border-border/50 bg-card/65 shadow-lg shadow-black/[0.04] backdrop-blur-xl;
+}
+
+.dark .glass-panel {
+  @apply bg-card/45 shadow-black/20;
+}
+
+.glass-header {
+  @apply border-border/40 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55;
+}
+
+.glass-column {
+  @apply border-border/45 bg-card/55 shadow-sm shadow-black/[0.03] backdrop-blur-md;
+}
+
+.glass-column-over {
+  @apply border-primary/40 bg-card/70 ring-2 ring-primary/15 shadow-md;
 }

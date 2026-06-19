@@ -26,7 +26,7 @@ export function Layout({ user, view, onChangeView, children }: Props) {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="glass-header sticky top-0 z-40 border-b">
         <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <Logo className="size-9 shrink-0" />
@@ -44,7 +44,7 @@ export function Layout({ user, view, onChangeView, children }: Props) {
           </div>
 
           <div className="flex items-center gap-2">
-            <nav className="flex items-center gap-1 rounded-lg border bg-muted/50 p-1" role="tablist">
+            <nav className="flex items-center gap-1 rounded-lg border border-border/50 bg-background/50 p-1 backdrop-blur-sm" role="tablist">
               {NAV.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -55,8 +55,8 @@ export function Layout({ user, view, onChangeView, children }: Props) {
                   className={cn(
                     'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
                     view === id
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground',
+                      ? 'bg-card/90 text-foreground shadow-sm backdrop-blur-sm'
+                      : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
                   )}
                 >
                   <Icon className="size-4" />
