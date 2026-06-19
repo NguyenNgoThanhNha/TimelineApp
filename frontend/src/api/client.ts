@@ -1,10 +1,12 @@
 import axios from 'axios';
 
-// baseURL '/api' tương đối:
-// - Dev: Vite proxy /api -> http://localhost:3000
-// - Docker: nginx proxy /api -> http://backend:3000
+// baseURL:
+// - Dev / Docker: VITE_API_URL trống -> '/api' (đi qua Vite proxy hoặc nginx proxy).
+// - Production (Vercel): đặt biến VITE_API_URL = URL backend, vd https://timeline-api.onrender.com
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
+
 export const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: `${API_BASE}/api`,
   headers: { 'Content-Type': 'application/json' },
 });
 
