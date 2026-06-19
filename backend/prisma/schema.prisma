@@ -1,0 +1,54 @@
+// Prisma schema cho MongoDB.
+// Lưu ý: Prisma yêu cầu MongoDB chạy ở chế độ replica set (Atlas đã sẵn, hoặc Docker single-node).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum TimelineStatus {
+  Planned // Dự kiến
+  InProgress // Đang làm
+  Completed // Hoàn thành
+  OnHold // Tạm dừng
+  Cancelled // Đã huỷ
+}
+
+enum Role {
+  User
+  Admin
+}
+
+model User {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  email     String     @unique
+  password  String
+  name      String
+  role      Role       @default(User)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  timelines Timeline[]
+
+  @@map("users")
+}
+
+model Timeline {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  status      TimelineStatus @default(Planned)
+  category    String
+  // Chủ sở hữu — mỗi người chỉ thấy timeline của mình (trừ Admin thấy tất cả)
+  userId      String         @db.ObjectId
+  user        User           @relation(fields: [userId], references: [id])
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("timelines")
+}

@@ -1,0 +1,52 @@
+services:
+  # ---------- MongoDB (single-node replica set — Prisma yêu cầu replica set) ----------
+  mongodb:
+    image: mongo:7
+    container_name: timeline-mongodb
+    command: ['--replSet', 'rs0', '--bind_ip_all']
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      # Tự khởi tạo replica set (idempotent) ngay trong healthcheck — exec form tránh lỗi quote
+      test:
+        - 'CMD'
+        - 'mongosh'
+        - '--quiet'
+        - '--eval'
+        - "try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }) }"
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+
+  # ---------- Backend (NestJS + Prisma) ----------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: timeline-backend
+    environment:
+      PORT: 3000
+      # directConnection=true: kết nối trực tiếp tới node replica set
+      DATABASE_URL: 'mongodb://mongodb:27017/timelinedb?directConnection=true'
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+
+  # ---------- Frontend (React + nginx, proxy /api -> backend) ----------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: timeline-frontend
+    depends_on:
+      - backend
+    ports:
+      - '8080:80'
+
+volumes:
+  mongo_data:
