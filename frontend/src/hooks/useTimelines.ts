@@ -18,14 +18,25 @@ export function useCategories() {
   });
 }
 
+export function useStats() {
+  return useQuery({
+    queryKey: ['stats'],
+    queryFn: api.getStats,
+  });
+}
+
+// Sau mỗi thay đổi -> làm mới danh sách, category và thống kê Dashboard
+function invalidateAll(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ['timelines'] });
+  qc.invalidateQueries({ queryKey: ['categories'] });
+  qc.invalidateQueries({ queryKey: ['stats'] });
+}
+
 export function useCreateTimeline() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: TimelineRequest) => api.createTimeline(body),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['timelines'] });
-      qc.invalidateQueries({ queryKey: ['categories'] });
-    },
+    onSuccess: () => invalidateAll(qc),
   });
 }
 
@@ -33,10 +44,7 @@ export function useUpdateTimeline() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: TimelineRequest }) => api.updateTimeline(id, body),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['timelines'] });
-      qc.invalidateQueries({ queryKey: ['categories'] });
-    },
+    onSuccess: () => invalidateAll(qc),
   });
 }
 
@@ -44,6 +52,6 @@ export function useDeleteTimeline() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.deleteTimeline(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['timelines'] }),
+    onSuccess: () => invalidateAll(qc),
   });
 }

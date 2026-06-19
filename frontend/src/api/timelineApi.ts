@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Timeline, TimelineFilters, TimelineRequest } from '../types/timeline';
+import type { Stats, Timeline, TimelineFilters, TimelineRequest } from '../types/timeline';
 
 // Lớp API client: tách hoàn toàn việc gọi HTTP khỏi component.
 // (response.data đã được interceptor bóc khỏi envelope -> chính là Data)
@@ -37,5 +37,10 @@ export async function deleteTimeline(id: string): Promise<void> {
 
 export async function getCategories(): Promise<string[]> {
   const { data } = await apiClient.get<string[]>('/timelines/categories');
+  return data;
+}
+
+export async function getStats(): Promise<Stats> {
+  const { data } = await apiClient.get<Stats>('/timelines/stats');
   return data;
 }
