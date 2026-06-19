@@ -1,5 +1,11 @@
 import { apiClient } from './client';
-import type { Stats, Timeline, TimelineFilters, TimelineRequest } from '../types/timeline';
+import type {
+  Stats,
+  Timeline,
+  TimelineFilters,
+  TimelineRequest,
+  TimelineStatus,
+} from '../types/timeline';
 
 // Lớp API client: tách hoàn toàn việc gọi HTTP khỏi component.
 // (response.data đã được interceptor bóc khỏi envelope -> chính là Data)
@@ -42,5 +48,11 @@ export async function getCategories(): Promise<string[]> {
 
 export async function getStats(): Promise<Stats> {
   const { data } = await apiClient.get<Stats>('/timelines/stats');
+  return data;
+}
+
+// Đổi riêng trạng thái (kéo-thả Kanban)
+export async function updateTimelineStatus(id: string, status: TimelineStatus): Promise<Timeline> {
+  const { data } = await apiClient.patch<Timeline>(`/timelines/${id}/status`, { status });
   return data;
 }

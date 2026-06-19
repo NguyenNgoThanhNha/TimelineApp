@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, TimelineStatus } from '@prisma/client';
 import { CurrentUserPayload } from '../../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { CreateTimelineDto } from '../dto/create-timeline.dto';
@@ -85,6 +85,12 @@ export class TimelineService {
     await this.getOwnedOrThrow(user, id);
     await this.prisma.timeline.delete({ where: { id } });
     return { id };
+  }
+
+  /** Cập nhật riêng trạng thái (dùng cho kéo-thả Kanban). */
+  async updateStatus(user: CurrentUserPayload, id: string, status: TimelineStatus) {
+    await this.getOwnedOrThrow(user, id);
+    return this.prisma.timeline.update({ where: { id }, data: { status } });
   }
 
   async getCategories(user: CurrentUserPayload) {

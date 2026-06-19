@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -17,6 +18,7 @@ import {
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateTimelineDto } from '../dto/create-timeline.dto';
 import { QueryTimelineDto } from '../dto/query-timeline.dto';
+import { UpdateStatusDto } from '../dto/update-status.dto';
 import { UpdateTimelineDto } from '../dto/update-timeline.dto';
 import { TimelineService } from '../services/timeline.service';
 
@@ -66,6 +68,16 @@ export class TimelineController {
     @Body() dto: UpdateTimelineDto,
   ) {
     return this.service.update(user, id, dto);
+  }
+
+  // PATCH /api/timelines/:id/status  (đổi riêng trạng thái — dùng cho kéo-thả Kanban)
+  @Patch(':id/status')
+  updateStatus(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('id') id: string,
+    @Body() dto: UpdateStatusDto,
+  ) {
+    return this.service.updateStatus(user, id, dto.status);
   }
 
   // DELETE /api/timelines/:id

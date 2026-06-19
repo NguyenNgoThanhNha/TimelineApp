@@ -104,3 +104,93 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ===================================================================
+   Nền động — chủ đề "Kiên trì leo dốc tới đích" (hiện trên mọi trang)
+   =================================================================== */
+.bg-animated {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(1100px 520px at 8% -8%, hsl(243 90% 96%), transparent 60%),
+    radial-gradient(900px 520px at 100% 4%, hsl(278 85% 96%), transparent 55%),
+    radial-gradient(800px 460px at 50% 110%, hsl(150 70% 95%), transparent 55%),
+    linear-gradient(180deg, #fafbff 0%, #f3f5ff 55%, #eef1fb 100%);
+}
+.dark .bg-animated {
+  background:
+    radial-gradient(1000px 520px at 8% -8%, hsl(243 60% 16%), transparent 60%),
+    radial-gradient(900px 520px at 100% 4%, hsl(278 55% 16%), transparent 55%),
+    linear-gradient(180deg, #0b0b14 0%, #0e0f1d 100%);
+}
+
+.bg-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.32;
+  animation: orbFloat 24s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(46px, -34px) scale(1.12); }
+  66% { transform: translate(-34px, 26px) scale(0.92); }
+}
+
+.bg-particle {
+  position: absolute;
+  bottom: -24px;
+  border-radius: 9999px;
+  opacity: 0;
+  animation-name: riseUp;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+@keyframes riseUp {
+  0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
+  12% { opacity: 0.65; }
+  88% { opacity: 0.65; }
+  100% { transform: translateY(-104vh) translateX(28px) scale(1); opacity: 0; }
+}
+
+.bg-mountains {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 42vh;
+  min-height: 230px;
+}
+.bg-mtn-back { fill: hsl(243 55% 87%); opacity: 0.5; }
+.bg-mtn-front { fill: hsl(248 50% 79%); opacity: 0.6; }
+.dark .bg-mtn-back { fill: hsl(243 35% 20%); }
+.dark .bg-mtn-front { fill: hsl(248 38% 26%); }
+
+.bg-trail {
+  stroke: hsl(38 95% 55%);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 9 13;
+  opacity: 0.85;
+  animation: trailMove 2.4s linear infinite;
+}
+@keyframes trailMove {
+  to { stroke-dashoffset: -44; }
+}
+
+.bg-flagpole { stroke: hsl(220 15% 38%); stroke-width: 2.5; stroke-linecap: round; }
+.bg-flag {
+  fill: hsl(0 80% 60%);
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: flagWave 2.2s ease-in-out infinite;
+}
+@keyframes flagWave {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.82); }
+}

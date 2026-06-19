@@ -4,8 +4,10 @@ import {
   DragOverlay,
   PointerSensor,
   closestCorners,
+  pointerWithin,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
@@ -40,6 +42,15 @@ function resolveTargetStatus(overId: string | number | undefined): TimelineStatu
   if (STATUS_OPTIONS.some((o) => o.value === id)) return id as TimelineStatus;
   return null;
 }
+
+/**
+ * Ưu tiên droppable nằm NGAY DƯỚI con trỏ (pointerWithin) -> thả vào cột rỗng
+ * (vd "Hoàn thành") chuẩn xác. Nếu con trỏ ở khoảng trống thì fallback closestCorners.
+ */
+const collisionDetectionStrategy: CollisionDetection = (args) => {
+  const pointerHits = pointerWithin(args);
+  return pointerHits.length > 0 ? pointerHits : closestCorners(args);
+};
 
 export function KanbanBoard({ items, onStatusChange, onDetail, onEdit, onDelete }: Props) {
   const grouped = useMemo(() => groupByStatus(items), [items]);
@@ -77,7 +88,7 @@ export function KanbanBoard({ items, onStatusChange, onDetail, onEdit, onDelete 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={collisionDetectionStrategy}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >

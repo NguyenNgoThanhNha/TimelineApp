@@ -4,6 +4,7 @@ import { useAuth } from '@/auth/AuthContext';
 import type { AuthUser } from '@/types/timeline';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
 export type View = 'timeline' | 'dashboard';
@@ -24,13 +25,11 @@ export function Layout({ user, view, onChangeView, children }: Props) {
   const { logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <CalendarDays className="size-5" />
-            </div>
+            <Logo className="size-9 shrink-0" />
             <div>
               <p className="text-sm font-semibold leading-none">Timeline cá nhân</p>
               <p className="mt-1 text-xs text-muted-foreground">

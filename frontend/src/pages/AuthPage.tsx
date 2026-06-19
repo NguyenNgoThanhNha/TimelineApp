@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { CalendarDays } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 import { useAuth } from '@/auth/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,12 +33,10 @@ export function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-md animate-in fade-in-0 zoom-in-95 duration-300">
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-md border-border/60 bg-card/80 shadow-xl backdrop-blur animate-in fade-in-0 zoom-in-95 duration-300">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <CalendarDays className="size-6" />
-          </div>
+          <Logo className="mx-auto mb-2 size-14" />
           <CardTitle className="text-2xl">Timeline cá nhân</CardTitle>
           <CardDescription>
             {mode === 'login' ? 'Đăng nhập để quản lý Kanban của bạn' : 'Tạo tài khoản mới'}
