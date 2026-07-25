@@ -18,16 +18,21 @@ import {
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CreateTimelineDto } from '../dto/create-timeline.dto';
 import { QueryTimelineDto } from '../dto/query-timeline.dto';
+import { SendZaloReminderDto } from '../dto/send-zalo-reminder.dto';
 import { UpdateStatusDto } from '../dto/update-status.dto';
 import { UpdateTimelineDto } from '../dto/update-timeline.dto';
 import { TimelineService } from '../services/timeline.service';
+import { ZaloReminderService } from '../services/zalo-reminder.service';
 
 @ApiTags('timelines')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard) // mọi route đều yêu cầu đăng nhập
 @Controller('api/timelines')
 export class TimelineController {
-  constructor(private readonly service: TimelineService) {}
+  constructor(
+    private readonly service: TimelineService,
+    private readonly zaloReminder: ZaloReminderService,
+  ) {}
 
   // GET /api/timelines?search=&status=&category=&from=&to=
   @Get()
@@ -46,6 +51,19 @@ export class TimelineController {
   @Get('categories')
   getCategories(@CurrentUser() user: CurrentUserPayload) {
     return this.service.getCategories(user);
+  }
+
+  // POST /api/timelines/reminders/zalo
+  // Gửi nhắc lịch Zalo thủ công cho các task được chọn; nếu không truyền id thì gửi mốc sắp tới.
+  @Post('reminders/zalo')
+  sendZaloReminders(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() dto: SendZaloReminderDto,
+  ) {
+    if (dto.timelineIds?.length) {
+      return this.zaloReminder.sendSelectedForUser(user, dto.timelineIds);
+    }
+    return this.zaloReminder.sendUpcomingForUser(user);
   }
 
   // GET /api/timelines/:id

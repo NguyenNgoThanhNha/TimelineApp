@@ -100,3 +100,17 @@ export function useUpdateTimelineStatus() {
     onSettled: () => invalidateAll(qc),
   });
 }
+
+export function useSendZaloReminders() {
+  return useMutation({
+    mutationFn: (timelineIds: string[]) => api.sendZaloReminders(timelineIds),
+    onSuccess: (result) => {
+      if (result.sent) {
+        toast.success(`Đã gửi nhắc lịch Zalo cho ${result.total} task`);
+      } else {
+        toast.info(result.reason ?? 'Không có task cần nhắc lịch');
+      }
+    },
+    onError: (err) => toast.error((err as Error).message),
+  });
+}

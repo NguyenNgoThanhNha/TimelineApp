@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { BellRing, Plus, Search } from 'lucide-react';
 import {
   useDeleteTimeline,
   useTimelines,
@@ -9,6 +9,7 @@ import { Filters } from '@/components/Filters';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { TimelineForm } from '@/components/TimelineForm';
 import { DetailModal } from '@/components/DetailModal';
+import { ZaloReminderDialog } from '@/components/ZaloReminderDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Timeline, TimelineFilters } from '@/types/timeline';
@@ -22,6 +23,7 @@ export function TimelinePage({ formOpen, onFormOpenChange }: Props) {
   const [filters, setFilters] = useState<TimelineFilters>({});
   const [editing, setEditing] = useState<Timeline | null>(null);
   const [detail, setDetail] = useState<Timeline | null>(null);
+  const [reminderOpen, setReminderOpen] = useState(false);
 
   const { data, isLoading, isError, error } = useTimelines(filters);
   const updateStatus = useUpdateTimelineStatus();
@@ -50,6 +52,24 @@ export function TimelinePage({ formOpen, onFormOpenChange }: Props) {
 
   return (
     <>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Quản lý timeline học tập</p>
+          <p className="text-xs text-muted-foreground/80">
+            Chọn task và gửi nhắc lịch qua Zalo cho các mốc quan trọng.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={!data?.length}
+          onClick={() => setReminderOpen(true)}
+        >
+          <BellRing className="size-4" />
+          Nhắc lịch Zalo
+        </Button>
+      </div>
+
       <Filters filters={filters} onChange={setFilters} hideStatus />
 
       {isLoading && (
@@ -106,6 +126,12 @@ export function TimelinePage({ formOpen, onFormOpenChange }: Props) {
           setDetail(null);
           openEdit(t);
         }}
+      />
+
+      <ZaloReminderDialog
+        open={reminderOpen}
+        items={data ?? []}
+        onOpenChange={setReminderOpen}
       />
     </>
   );

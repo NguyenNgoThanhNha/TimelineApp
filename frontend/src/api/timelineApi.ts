@@ -5,6 +5,7 @@ import type {
   TimelineFilters,
   TimelineRequest,
   TimelineStatus,
+  ZaloReminderResult,
 } from '../types/timeline';
 
 // Lớp API client: tách hoàn toàn việc gọi HTTP khỏi component.
@@ -54,5 +55,12 @@ export async function getStats(): Promise<Stats> {
 // Đổi riêng trạng thái (kéo-thả Kanban)
 export async function updateTimelineStatus(id: string, status: TimelineStatus): Promise<Timeline> {
   const { data } = await apiClient.patch<Timeline>(`/timelines/${id}/status`, { status });
+  return data;
+}
+
+export async function sendZaloReminders(timelineIds: string[]): Promise<ZaloReminderResult> {
+  const { data } = await apiClient.post<ZaloReminderResult>('/timelines/reminders/zalo', {
+    timelineIds,
+  });
   return data;
 }

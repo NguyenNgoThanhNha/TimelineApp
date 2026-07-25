@@ -64,3 +64,10 @@ export interface Stats {
   byStatus: Record<string, number>;
   byCategory: Record<string, number>;
 }
+
+export interface ZaloReminderResult {
+  sent: boolean;
+  total: number;
+  reason?: string;
+  response?: string;
+}
