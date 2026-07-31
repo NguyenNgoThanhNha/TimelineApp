@@ -379,3 +379,120 @@
 .glass-column-over {
   @apply border-primary/40 bg-card/75 ring-2 ring-primary/20 shadow-md;
 }
+
+/* ===================================================================
+   Nội dung Markdown của bài blog / trang tài liệu
+   =================================================================== */
+.prose-doc {
+  @apply text-[15px] leading-7 text-foreground;
+}
+
+.prose-doc > * + * {
+  @apply mt-4;
+}
+
+.prose-doc h2 {
+  @apply mt-10 scroll-mt-20 border-b border-border/50 pb-2 text-xl font-bold tracking-tight;
+}
+
+.prose-doc h3 {
+  @apply mt-8 scroll-mt-20 text-lg font-semibold tracking-tight;
+}
+
+.prose-doc h4 {
+  @apply mt-6 scroll-mt-20 font-semibold;
+}
+
+.prose-doc p {
+  @apply text-foreground/90;
+}
+
+.prose-doc a {
+  @apply font-medium text-primary underline underline-offset-4 hover:opacity-80;
+}
+
+.prose-doc strong {
+  @apply font-semibold text-foreground;
+}
+
+.prose-doc ul {
+  @apply list-disc space-y-1.5 pl-6;
+}
+
+.prose-doc ol {
+  @apply list-decimal space-y-1.5 pl-6;
+}
+
+.prose-doc li::marker {
+  @apply text-muted-foreground;
+}
+
+/* Checklist của remark-gfm: bỏ chấm đầu dòng */
+.prose-doc li:has(> input[type='checkbox']) {
+  @apply list-none -ml-6;
+}
+
+.prose-doc input[type='checkbox'] {
+  @apply mr-2 align-middle;
+}
+
+.prose-doc blockquote {
+  @apply rounded-r-md border-l-4 border-primary/50 bg-primary/5 px-4 py-3 text-foreground/80;
+}
+
+.prose-doc blockquote > * + * {
+  @apply mt-2;
+}
+
+.prose-doc hr {
+  @apply my-8 border-border/60;
+}
+
+/* Code inline */
+.prose-doc :not(pre) > code {
+  @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-foreground;
+}
+
+/* Code block — nền tối cố định để khớp theme highlight.js github-dark */
+.prose-doc pre {
+  @apply overflow-x-auto rounded-lg border border-border/60 bg-[#0d1117] p-4 text-[13px] leading-6;
+}
+
+.prose-doc pre code {
+  @apply bg-transparent p-0 font-mono;
+}
+
+/* Bảng: cuộn ngang trong khung riêng, không đẩy vỡ layout trang */
+.prose-doc-table-wrap {
+  @apply my-4 overflow-x-auto rounded-lg border border-border/60;
+}
+
+.prose-doc table {
+  @apply w-full border-collapse text-sm;
+}
+
+.prose-doc thead {
+  @apply bg-muted/60;
+}
+
+.prose-doc th {
+  @apply px-3 py-2 text-left font-semibold;
+}
+
+.prose-doc td {
+  @apply border-t border-border/50 px-3 py-2 align-top;
+}
+
+.prose-doc img {
+  @apply my-4 max-w-full rounded-lg border border-border/60;
+}
+
+/* Lưới mờ trên ảnh bìa sinh tự động */
+.cover-art-grid {
+  opacity: 0.18;
+  background-image:
+    linear-gradient(hsl(0 0% 100% / 0.6) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(0 0% 100% / 0.6) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 80% 80% at 30% 20%, black, transparent);
+}

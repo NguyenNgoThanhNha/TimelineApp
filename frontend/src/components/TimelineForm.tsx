@@ -24,6 +24,8 @@ const schema = z
     endDate: z.string().optional(),
     status: z.enum(['Planned', 'InProgress', 'Completed', 'OnHold', 'Cancelled']),
     category: z.string().min(1, 'Danh mục là bắt buộc').max(80),
+    // Mỗi dòng là một mục tiêu học tập, hiển thị ở trang chi tiết task
+    objectives: z.string().optional(),
   })
   .refine((d) => !d.endDate || !d.startDate || d.endDate >= d.startDate, {
     path: ['endDate'],
@@ -31,6 +33,30 @@ const schema = z
   });
 
 type FormValues = z.infer<typeof schema>;
+
+// Dữ liệu ban đầu của form — dùng chung cho defaultValues và reset khi mở lại dialog
+function toFormValues(initial: Timeline | null): FormValues {
+  if (!initial) {
+    return {
+      title: '',
+      description: '',
+      startDate: '',
+      endDate: '',
+      status: 'Planned',
+      category: '',
+      objectives: '',
+    };
+  }
+  return {
+    title: initial.title,
+    description: initial.description ?? '',
+    startDate: initial.startDate.slice(0, 10),
+    endDate: initial.endDate ? initial.endDate.slice(0, 10) : '',
+    status: initial.status,
+    category: initial.category,
+    objectives: (initial.objectives ?? []).join('\n'),
+  };
+}
 
 interface Props {
   open: boolean;
@@ -51,23 +77,7 @@ export function TimelineForm({ open, initial, onClose }: Props) {
     reset,
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: initial
-      ? {
-          title: initial.title,
-          description: initial.description ?? '',
-          startDate: initial.startDate.slice(0, 10),
-          endDate: initial.endDate ? initial.endDate.slice(0, 10) : '',
-          status: initial.status,
-          category: initial.category,
-        }
-      : {
-          title: '',
-          description: '',
-          startDate: '',
-          endDate: '',
-          status: 'Planned',
-          category: '',
-        },
+    defaultValues: toFormValues(initial),
   });
 
   const onSubmit = async (values: FormValues) => {
@@ -78,6 +88,10 @@ export function TimelineForm({ open, initial, onClose }: Props) {
       endDate: values.endDate || null,
       status: values.status,
       category: values.category,
+      objectives: (values.objectives ?? '')
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean),
     };
     try {
       if (isEdit && initial) {
@@ -97,25 +111,7 @@ export function TimelineForm({ open, initial, onClose }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    reset(
-      initial
-        ? {
-            title: initial.title,
-            description: initial.description ?? '',
-            startDate: initial.startDate.slice(0, 10),
-            endDate: initial.endDate ? initial.endDate.slice(0, 10) : '',
-            status: initial.status,
-            category: initial.category,
-          }
-        : {
-            title: '',
-            description: '',
-            startDate: '',
-            endDate: '',
-            status: 'Planned',
-            category: '',
-          },
-    );
+    reset(toFormValues(initial));
   }, [open, initial, reset]);
 
   return (
@@ -183,6 +179,20 @@ export function TimelineForm({ open, initial, onClose }: Props) {
               placeholder="Chi tiết…"
             />
             {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="objectives">Học xong task này thì nắm được gì</Label>
+            <textarea
+              id="objectives"
+              rows={4}
+              className="flex min-h-[90px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              {...register('objectives')}
+              placeholder={'Mỗi dòng một mục tiêu, VD:\nHiểu IoC container\nChọn đúng vòng đời service'}
+            />
+            <p className="text-xs text-muted-foreground">
+              Danh sách này hiển thị ở trang học tập của task, kèm bài blog và tài liệu đính kèm.
+            </p>
           </div>
 
           {apiError && (

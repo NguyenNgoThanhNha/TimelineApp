@@ -1,4 +1,6 @@
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
+import { BookOpen } from 'lucide-react';
 import { categoryColor, STATUS_META } from '@/lib/constants';
 import type { Timeline } from '@/types/timeline';
 import { Badge } from '@/components/ui/badge';
@@ -80,6 +82,13 @@ export function DetailModal({ open, timeline, onClose, onEdit }: Props) {
         </div>
 
         <DialogFooter>
+          {/* Trang chi tiết task: mục tiêu học tập, bài blog đã gắn và tài liệu đính kèm */}
+          <Button variant="outline" asChild>
+            <Link to={`/task/${timeline.id}`} onClick={onClose}>
+              <BookOpen className="size-4" />
+              Trang học tập
+            </Link>
+          </Button>
           <Button variant="outline" onClick={onClose}>
             Đóng
           </Button>

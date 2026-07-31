@@ -1,7 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Prisma, Role, TimelineStatus } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { estimateReadMinutes } from '../../../common/slug.util';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { BLOG_SEED } from '../../blog/seed/blog-seed.data';
 
 /**
  * Reset database khi backend khởi động rồi seed lại dữ liệu roadmap.
@@ -36,8 +38,11 @@ export class TimelineSeederService implements OnModuleInit {
         });
 
         await this.prisma.timeline.createMany({ data: this.seedData(demo.id, admin.id) });
+        await this.seedBlog(demo.id);
 
-        this.logger.log('Đã reset DB và seed 2 tài khoản demo + dữ liệu timeline từ Roadmap.');
+        this.logger.log(
+          'Đã reset DB và seed 2 tài khoản demo + timeline từ Roadmap + bài blog/tài liệu mẫu.',
+        );
         return;
       } catch (err) {
         this.logger.warn(`Seed chưa được (lần ${attempt}/${maxAttempts}): ${(err as Error).message}`);
@@ -51,8 +56,85 @@ export class TimelineSeederService implements OnModuleInit {
   }
 
   private async resetDatabase() {
+    // Xoá từ bảng phụ thuộc ra ngoài (MongoDB không cascade)
+    await this.prisma.resource.deleteMany({});
+    await this.prisma.doc.deleteMany({});
+    await this.prisma.post.deleteMany({});
     await this.prisma.timeline.deleteMany({});
     await this.prisma.user.deleteMany({});
+  }
+
+  /**
+   * Seed blog kiến thức: mỗi bài gắn với task tương ứng trong roadmap,
+   * kèm trang tài liệu nội bộ và link tài nguyên ngoài.
+   */
+  private async seedBlog(authorId: string) {
+    const timelines = await this.prisma.timeline.findMany({
+      where: { userId: authorId },
+      select: { id: true, title: true },
+    });
+    const idByTitle = new Map(timelines.map((t) => [t.title, t.id]));
+
+    for (const seed of BLOG_SEED) {
+      const timelineIds = seed.timelineTitles
+        .map((title) => idByTitle.get(title))
+        .filter((id): id is string => Boolean(id));
+
+      const post = await this.prisma.post.create({
+        data: {
+          slug: seed.slug,
+          title: seed.title,
+          summary: seed.summary,
+          content: seed.content,
+          coverImage: seed.coverGradient,
+          category: seed.category,
+          tags: seed.tags,
+          readMinutes: estimateReadMinutes(seed.content),
+          authorId,
+          timelines: { connect: timelineIds.map((id) => ({ id })) },
+        },
+      });
+
+      // Tài liệu và link ngoài đính vào cả bài viết lẫn task đầu tiên của bài
+      const primaryTimelineId = timelineIds[0] ?? null;
+
+      for (const doc of seed.docs) {
+        await this.prisma.doc.create({
+          data: {
+            slug: `${seed.slug}-${doc.order + 1}`,
+            title: doc.title,
+            summary: doc.summary,
+            content: doc.content,
+            order: doc.order,
+            postId: post.id,
+            timelineId: primaryTimelineId,
+            ownerId: authorId,
+          },
+        });
+      }
+
+      for (const resource of seed.resources) {
+        await this.prisma.resource.create({
+          data: {
+            title: resource.title,
+            url: resource.url,
+            type: resource.type,
+            note: resource.note ?? null,
+            postId: post.id,
+            timelineId: primaryTimelineId,
+            ownerId: authorId,
+          },
+        });
+      }
+
+      // Ghi mục tiêu học tập ngược lại vào task chính
+      if (seed.objectives?.length && primaryTimelineId) {
+        await this.prisma.timeline.update({
+          where: { id: primaryTimelineId },
+          data: { objectives: seed.objectives },
+        });
+      }
+    }
   }
 
   private seedData(demoId: string, adminId: string): Prisma.TimelineCreateManyInput[] {

@@ -23,6 +23,16 @@ enum Role {
   Admin
 }
 
+// Loại tài nguyên ngoài đính kèm vào task (link YouTube, docs chính chủ, repo…)
+enum ResourceType {
+  Article
+  Video
+  Docs
+  Repo
+  Course
+  Other
+}
+
 model User {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
   email     String     @unique
@@ -32,6 +42,9 @@ model User {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   timelines Timeline[]
+  posts     Post[]
+  docs      Doc[]
+  resources Resource[]
 
   @@map("users")
 }
@@ -44,11 +57,83 @@ model Timeline {
   endDate     DateTime?
   status      TimelineStatus @default(Planned)
   category    String
+  // Mục tiêu học tập của task — "học xong task này thì biết được gì"
+  objectives  String[]       @default([])
   // Chủ sở hữu — mỗi người chỉ thấy timeline của mình (trừ Admin thấy tất cả)
   userId      String         @db.ObjectId
   user        User           @relation(fields: [userId], references: [id])
+  // Quan hệ n-n với bài blog (MongoDB: mỗi bên giữ một mảng id)
+  postIds     String[]       @db.ObjectId
+  posts       Post[]         @relation("PostTimelines", fields: [postIds], references: [id])
+  docs        Doc[]
+  resources   Resource[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
   @@map("timelines")
+}
+
+/// Bài blog tổng hợp kiến thức — nội dung Markdown, gắn được với nhiều task.
+model Post {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  slug        String     @unique
+  title       String
+  summary     String?
+  content     String // Markdown
+  coverImage  String?
+  category    String
+  tags        String[]   @default([])
+  published   Boolean    @default(true)
+  readMinutes Int        @default(1)
+  views       Int        @default(0)
+  publishedAt DateTime   @default(now())
+  authorId    String     @db.ObjectId
+  author      User       @relation(fields: [authorId], references: [id])
+  // Task liên quan (n-n) — từ blog nhảy sang task và ngược lại
+  timelineIds String[]   @db.ObjectId
+  timelines   Timeline[] @relation("PostTimelines", fields: [timelineIds], references: [id])
+  docs        Doc[]
+  resources   Resource[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("posts")
+}
+
+/// Trang tài liệu nội bộ (Markdown) đính kèm task và/hoặc bài blog.
+model Doc {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  slug       String    @unique
+  title      String
+  summary    String?
+  content    String // Markdown
+  order      Int       @default(0)
+  timelineId String?   @db.ObjectId
+  timeline   Timeline? @relation(fields: [timelineId], references: [id])
+  postId     String?   @db.ObjectId
+  post       Post?     @relation(fields: [postId], references: [id])
+  ownerId    String    @db.ObjectId
+  owner      User      @relation(fields: [ownerId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("docs")
+}
+
+/// Tài nguyên ngoài (link) đính kèm task và/hoặc bài blog.
+model Resource {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  url        String
+  type       ResourceType @default(Article)
+  note       String?
+  timelineId String?      @db.ObjectId
+  timeline   Timeline?    @relation(fields: [timelineId], references: [id])
+  postId     String?      @db.ObjectId
+  post       Post?        @relation(fields: [postId], references: [id])
+  ownerId    String       @db.ObjectId
+  owner      User         @relation(fields: [ownerId], references: [id])
+  createdAt  DateTime     @default(now())
+
+  @@map("resources")
 }

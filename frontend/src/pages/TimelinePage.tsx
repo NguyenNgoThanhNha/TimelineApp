@@ -6,6 +6,7 @@ import {
   useUpdateTimelineStatus,
 } from '@/hooks/useTimelines';
 import { Filters } from '@/components/Filters';
+import { HeroBanner } from '@/components/HeroBanner';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { TimelineForm } from '@/components/TimelineForm';
 import { DetailModal } from '@/components/DetailModal';
@@ -14,12 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Timeline, TimelineFilters } from '@/types/timeline';
 
-interface Props {
-  formOpen: boolean;
-  onFormOpenChange: (open: boolean) => void;
-}
-
-export function TimelinePage({ formOpen, onFormOpenChange }: Props) {
+export function TimelinePage() {
+  const [formOpen, setFormOpen] = useState(false);
   const [filters, setFilters] = useState<TimelineFilters>({});
   const [editing, setEditing] = useState<Timeline | null>(null);
   const [detail, setDetail] = useState<Timeline | null>(null);
@@ -31,11 +28,11 @@ export function TimelinePage({ formOpen, onFormOpenChange }: Props) {
 
   const openCreate = () => {
     setEditing(null);
-    onFormOpenChange(true);
+    setFormOpen(true);
   };
   const openEdit = (t: Timeline) => {
     setEditing(t);
-    onFormOpenChange(true);
+    setFormOpen(true);
   };
 
   const handleStatusChange = (id: string, status: Timeline['status']) => {
@@ -52,6 +49,8 @@ export function TimelinePage({ formOpen, onFormOpenChange }: Props) {
 
   return (
     <>
+      <HeroBanner view="timeline" onAddMilestone={openCreate} />
+
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-muted-foreground">Quản lý timeline học tập</p>
@@ -112,11 +111,7 @@ export function TimelinePage({ formOpen, onFormOpenChange }: Props) {
         />
       )}
 
-      <TimelineForm
-        open={formOpen}
-        initial={editing}
-        onClose={() => onFormOpenChange(false)}
-      />
+      <TimelineForm open={formOpen} initial={editing} onClose={() => setFormOpen(false)} />
 
       <DetailModal
         open={!!detail}

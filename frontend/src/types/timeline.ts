@@ -17,6 +17,8 @@ export interface Timeline {
   endDate?: string | null;
   status: TimelineStatus;
   category: string;
+  // Học xong task này thì nắm được gì
+  objectives?: string[];
   userId?: string;
   createdAt: string;
   updatedAt: string;
@@ -30,6 +32,7 @@ export interface TimelineRequest {
   endDate?: string | null;
   status: TimelineStatus;
   category: string;
+  objectives?: string[];
 }
 
 // Bộ lọc phía client (gửi thành query string)

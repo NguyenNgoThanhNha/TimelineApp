@@ -1,12 +1,11 @@
 import { Sparkles, Target, TrendingUp, Zap, type LucideIcon } from 'lucide-react';
+import { useAuth } from '@/auth/AuthContext';
 import { useStats } from '@/hooks/useTimelines';
 import type { View } from '@/components/Layout';
-import type { AuthUser } from '@/types/timeline';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface Props {
-  user: AuthUser;
   view: View;
   onAddMilestone?: () => void;
 }
@@ -20,11 +19,18 @@ const VIEW_COPY: Record<View, { title: string; subtitle: string }> = {
     title: 'Dashboard thống kê',
     subtitle: 'Theo dõi tiến độ, tỉ lệ hoàn thành và phân bổ theo danh mục',
   },
+  blog: {
+    title: 'Blog kiến thức',
+    subtitle: 'Học tới đâu viết lại tới đó — mỗi bài gắn với task và tài liệu tương ứng',
+  },
 };
 
-export function HeroBanner({ user, view, onAddMilestone }: Props) {
+export function HeroBanner({ view, onAddMilestone }: Props) {
+  const { user } = useAuth();
   const { data: stats } = useStats();
   const copy = VIEW_COPY[view];
+
+  if (!user) return null;
 
   return (
     <section className="hero-banner relative mb-6 overflow-hidden rounded-2xl border border-white/20 shadow-xl shadow-indigo-500/10">

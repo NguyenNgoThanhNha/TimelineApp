@@ -120,18 +120,48 @@ npm run dev                 # http://localhost:5173 (proxy /api -> :3000)
 |---|---|---|
 | GET | `/api/timelines` | Danh sách (lọc: `?search=&status=&category=&from=&to=`) |
 | GET | `/api/timelines/categories` | Danh sách danh mục (cho filter) |
-| GET | `/api/timelines/:id` | Chi tiết |
+| GET | `/api/timelines/:id` | Chi tiết — kèm `posts`, `docs`, `resources` của task |
 | POST | `/api/timelines` | Tạo mới |
 | PUT | `/api/timelines/:id` | Cập nhật |
 | DELETE | `/api/timelines/:id` | Xoá |
+| GET | `/api/posts` | Danh sách bài blog (`?search=&category=&tag=&timelineId=&page=&pageSize=`) |
+| GET | `/api/posts/categories` · `/api/posts/tags` | Chuyên mục / thẻ kèm số bài |
+| GET | `/api/posts/:slug` | Chi tiết bài — kèm task liên quan, tài liệu, link, bài liên quan |
+| POST/PUT/DELETE | `/api/posts` · `/api/posts/:id` | Soạn / sửa / xoá bài |
+| GET | `/api/docs?timelineId=&postId=` · `/api/docs/:slug` | Trang tài liệu nội bộ |
+| POST/PUT/DELETE | `/api/docs` · `/api/docs/:id` | Thêm / sửa / xoá tài liệu |
+| GET/POST/PUT/DELETE | `/api/resources` | Link tài nguyên ngoài của task hoặc bài viết |
 
 **Khuôn response** (envelope theo template):
 ```json
 { "StatusCode": 200, "Message": "Success", "TotalRecord": 15, "Data": [ ... ] }
 ```
 
-**Model Timeline:** `id, title, description, startDate, endDate, status, category, createdAt, updatedAt`
+**Model Timeline:** `id, title, description, startDate, endDate, status, category, objectives[], createdAt, updatedAt`
 **status:** `Planned | InProgress | Completed | OnHold | Cancelled`
+**Model Post:** `id, slug, title, summary, content (Markdown), coverImage, category, tags[], published, readMinutes, views, publishedAt, authorId, timelineIds[]`
+**Model Doc:** `id, slug, title, summary, content (Markdown), order, timelineId?, postId?, ownerId`
+**Model Resource:** `id, title, url, type, note, timelineId?, postId?, ownerId`
+
+---
+
+## 5b. Blog kiến thức & tài liệu đính kèm
+
+Mỗi task học xong thì viết lại — blog, tài liệu và task nối với nhau hai chiều.
+
+| Trang | Đường dẫn | Nội dung |
+|---|---|---|
+| Danh sách bài viết | `/blog` | Card có ảnh bìa, chuyên mục, tóm tắt, thời gian đọc; tìm kiếm + phân trang |
+| Chi tiết bài viết | `/blog/:slug` | Markdown (bảng, checklist, code có tô màu), **mục lục dính** bên phải, thẻ, task liên quan, tài liệu đính kèm, nguồn tham khảo, bài liên quan |
+| Chuyên mục / Thẻ | `/blog/chuyen-muc`, `/blog/the` | Tổng hợp kèm số bài; bấm vào lọc danh sách |
+| Soạn bài | `/blog/moi`, `/blog/:slug/sua` | Editor Markdown + xem trước trực tiếp, tick chọn task để gắn |
+| Trang học tập của task | `/task/:id` | Mục tiêu "học xong nắm được gì", bài blog đã gắn, tài liệu nội bộ, link ngoài |
+| Trang tài liệu | `/tai-lieu/:slug` | Đọc tài liệu như bài viết, có mục lục và điều hướng trước/sau trong cùng task |
+
+- **Liên kết hai chiều:** bài viết gắn nhiều task (`timelineIds`), từ task xem được mọi bài/tài liệu của nó.
+- **Mục tiêu học tập:** nhập trong form task trên Kanban, mỗi dòng là một mục tiêu.
+- **Quyền:** bài đã publish thì mọi người đọc được, bản nháp và tài liệu chỉ chủ sở hữu (và Admin) thấy; chỉ tác giả mới sửa/xoá được.
+- Sau khi đổi schema nhớ chạy `npm run prisma:generate` và `npm run prisma:push` (tạo unique index cho `slug`).
 
 ---
 

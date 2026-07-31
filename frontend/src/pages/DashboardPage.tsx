@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { AlertTriangle, CheckCircle2, Clock, Pin } from 'lucide-react';
 import { useStats } from '@/hooks/useTimelines';
+import { HeroBanner } from '@/components/HeroBanner';
 import { STATUS_META, STATUS_OPTIONS, categoryColor } from '@/lib/constants';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -152,6 +153,8 @@ export function DashboardPage() {
 
   return (
     <>
+      <HeroBanner view="dashboard" />
+
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard label="Tổng mốc" value={stats.total} icon={Pin} index={0} />
         <KpiCard label="Hoàn thành" value={stats.completed} icon={CheckCircle2} index={1} />

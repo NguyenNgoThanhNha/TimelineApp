@@ -38,8 +38,40 @@ export class TimelineService {
     return this.prisma.timeline.findMany({ where, orderBy: { startDate: 'asc' } });
   }
 
+  /**
+   * Chi tiết task kèm "học gì" — bài blog đã gắn, trang tài liệu nội bộ và link ngoài.
+   * Đây là dữ liệu cho trang chi tiết task (learning hub) ở frontend.
+   */
   async findOne(user: CurrentUserPayload, id: string) {
-    return this.getOwnedOrThrow(user, id);
+    const timeline = await this.getOwnedOrThrow(user, id);
+
+    const [posts, docs, resources] = await Promise.all([
+      this.prisma.post.findMany({
+        where: { timelineIds: { has: id } },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          summary: true,
+          category: true,
+          tags: true,
+          coverImage: true,
+          readMinutes: true,
+          views: true,
+          publishedAt: true,
+          published: true,
+        },
+        orderBy: { publishedAt: 'desc' },
+      }),
+      this.prisma.doc.findMany({
+        where: { timelineId: id },
+        select: { id: true, slug: true, title: true, summary: true, order: true, updatedAt: true },
+        orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+      }),
+      this.prisma.resource.findMany({ where: { timelineId: id }, orderBy: { createdAt: 'asc' } }),
+    ]);
+
+    return { ...timeline, posts, docs, resources };
   }
 
   async create(user: CurrentUserPayload, dto: CreateTimelineDto) {
@@ -52,6 +84,7 @@ export class TimelineService {
         endDate: dto.endDate ? new Date(dto.endDate) : null,
         status: dto.status,
         category: dto.category.trim(),
+        objectives: this.cleanObjectives(dto.objectives),
         userId: user.userId, // gán chủ sở hữu = người đang đăng nhập
       },
     });
@@ -77,12 +110,19 @@ export class TimelineService {
         }),
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.category !== undefined && { category: dto.category.trim() }),
+        ...(dto.objectives !== undefined && { objectives: this.cleanObjectives(dto.objectives) }),
       },
     });
   }
 
   async remove(user: CurrentUserPayload, id: string) {
     await this.getOwnedOrThrow(user, id);
+    // MongoDB không cascade: gỡ liên kết blog và xoá tài liệu/link đính kèm task
+    await this.prisma.timeline.update({ where: { id }, data: { posts: { set: [] } } });
+    await this.prisma.doc.deleteMany({ where: { timelineId: id, postId: null } });
+    await this.prisma.doc.updateMany({ where: { timelineId: id }, data: { timelineId: null } });
+    await this.prisma.resource.deleteMany({ where: { timelineId: id, postId: null } });
+    await this.prisma.resource.updateMany({ where: { timelineId: id }, data: { timelineId: null } });
     await this.prisma.timeline.delete({ where: { id } });
     return { id };
   }
@@ -144,6 +184,11 @@ export class TimelineService {
       throw new NotFoundException('Không tìm thấy timeline');
     }
     return item;
+  }
+
+  /** Bỏ dòng trống, cắt khoảng trắng thừa trong danh sách mục tiêu học tập. */
+  private cleanObjectives(objectives?: string[]): string[] {
+    return (objectives ?? []).map((o) => o.trim()).filter(Boolean);
   }
 
   private ensureValidDateRange(start: string, end?: string) {

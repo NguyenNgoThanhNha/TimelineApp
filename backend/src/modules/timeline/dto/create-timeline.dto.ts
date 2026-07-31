@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TimelineStatus } from '@prisma/client';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsDateString,
   IsEnum,
   IsNotEmpty,
@@ -40,4 +42,14 @@ export class CreateTimelineDto {
   @IsNotEmpty({ message: 'Danh mục là bắt buộc' })
   @MaxLength(80)
   category!: string;
+
+  @ApiPropertyOptional({
+    description: 'Học xong task này thì nắm được gì',
+    example: ['Hiểu IoC container', 'Khai báo được bean bằng @Bean và @Component'],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(20)
+  objectives?: string[];
 }
