@@ -1,8 +1,9 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, FileText, Link2, ListChecks, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, CalendarClock, FileText, Link2, ListChecks, Pencil, Send, Trash2 } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
-import { useDeletePost, usePost } from '@/hooks/useBlog';
+import { useDeletePost, usePost, usePublishPostNow } from '@/hooks/useBlog';
 import { categoryColor } from '@/lib/constants';
+import { formatSchedule } from '@/lib/format';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { LinkedTaskList } from '@/components/blog/LinkedTaskList';
 import { PostCard } from '@/components/blog/PostCard';
 import { PostMeta } from '@/components/blog/PostMeta';
 import { ResourceList } from '@/components/blog/ResourceList';
+import { SeriesOutline, SeriesPager } from '@/components/blog/SeriesNavBox';
 
 /** Trang đọc bài viết: nội dung Markdown + mục lục + task liên quan + tài liệu đính kèm. */
 export function PostDetailPage() {
@@ -21,6 +23,7 @@ export function PostDetailPage() {
   const { user } = useAuth();
   const { data: post, isLoading, isError, error } = usePost(slug);
   const deletePost = useDeletePost();
+  const publishNow = usePublishPostNow();
 
   if (isLoading) {
     return (
@@ -79,11 +82,17 @@ export function PostDetailPage() {
               {post.category}
             </Badge>
           </Link>
-          {!post.published && (
-            <Badge variant="outline" className="border-dashed text-muted-foreground">
-              Bản nháp
-            </Badge>
-          )}
+          {!post.published &&
+            (post.scheduledAt ? (
+              <Badge variant="outline" className="gap-1 border-dashed text-muted-foreground">
+                <CalendarClock className="size-3" />
+                Hẹn đăng {formatSchedule(post.scheduledAt)}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="border-dashed text-muted-foreground">
+                Bản nháp
+              </Badge>
+            ))}
         </>
       }
       title={post.title}
@@ -97,6 +106,16 @@ export function PostDetailPage() {
           />
           {canEdit && (
             <div className="flex items-center gap-2">
+              {!post.published && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={publishNow.isPending}
+                  onClick={() => publishNow.mutate(post.id)}
+                >
+                  <Send className="size-4" /> Đăng ngay
+                </Button>
+              )}
               <Button variant="outline" size="sm" asChild>
                 <Link to={`/blog/${post.slug}/sua`}>
                   <Pencil className="size-4" /> Sửa
@@ -114,6 +133,8 @@ export function PostDetailPage() {
       content={post.content}
       sidebar={
         <>
+          {post.seriesNav && <SeriesOutline nav={post.seriesNav} currentSlug={post.slug} />}
+
           {!!post.timelines?.length && (
             <div>
               <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -144,6 +165,8 @@ export function PostDetailPage() {
       }
       footer={
         <>
+          {post.seriesNav && <SeriesPager nav={post.seriesNav} />}
+
           {!!post.tags.length && (
             <div className="flex flex-wrap items-center gap-2 border-t border-border/40 pt-6">
               {post.tags.map((tag) => (

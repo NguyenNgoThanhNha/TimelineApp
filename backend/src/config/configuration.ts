@@ -15,4 +15,9 @@ export default () => ({
     lookAheadHours: parseInt(process.env.ZALO_REMINDER_LOOKAHEAD_HOURS ?? '24', 10),
     intervalMinutes: parseInt(process.env.ZALO_REMINDER_INTERVAL_MINUTES ?? '60', 10),
   },
+  // Job tự đăng bài blog đã hẹn giờ (mặc định bật, quét mỗi 30 phút)
+  postSchedule: {
+    enabled: process.env.POST_SCHEDULE_ENABLED !== 'false',
+    intervalMinutes: parseInt(process.env.POST_SCHEDULE_INTERVAL_MINUTES ?? '30', 10),
+  },
 });

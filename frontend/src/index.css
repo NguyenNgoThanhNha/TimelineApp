@@ -453,6 +453,17 @@
   @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-foreground;
 }
 
+/* Link neo cạnh heading — chỉ hiện khi rê chuột vào heading */
+.prose-doc-anchor {
+  @apply ml-2 inline-flex align-middle text-muted-foreground opacity-0 transition-opacity;
+}
+
+.prose-doc h2:hover .prose-doc-anchor,
+.prose-doc h3:hover .prose-doc-anchor,
+.prose-doc-anchor:focus-visible {
+  @apply opacity-100;
+}
+
 /* Code block — nền tối cố định để khớp theme highlight.js github-dark */
 .prose-doc pre {
   @apply overflow-x-auto rounded-lg border border-border/60 bg-[#0d1117] p-4 text-[13px] leading-6;
@@ -460,6 +471,15 @@
 
 .prose-doc pre code {
   @apply bg-transparent p-0 font-mono;
+}
+
+/* Khung bọc code block (chứa nút copy) cũng cần khoảng cách như các khối khác */
+.prose-doc .prose-doc-code {
+  @apply my-4;
+}
+
+.prose-doc .prose-doc-code pre {
+  @apply my-0;
 }
 
 /* Bảng: cuộn ngang trong khung riêng, không đẩy vỡ layout trang */

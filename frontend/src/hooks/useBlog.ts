@@ -20,12 +20,34 @@ export function usePost(slug: string | undefined) {
   });
 }
 
+/** Hàng đợi bài hẹn giờ — chỉ tác giả (và Admin) thấy */
+export function useScheduledPosts() {
+  return useQuery({ queryKey: ['posts-scheduled'], queryFn: api.getScheduledPosts });
+}
+
 export function usePostCategories() {
   return useQuery({ queryKey: ['post-categories'], queryFn: api.getPostCategories });
 }
 
 export function usePostTags() {
   return useQuery({ queryKey: ['post-tags'], queryFn: api.getPostTags });
+}
+
+export function usePostSeries() {
+  return useQuery({ queryKey: ['post-series'], queryFn: api.getPostSeries });
+}
+
+export function useWritingStats() {
+  return useQuery({ queryKey: ['writing-stats'], queryFn: api.getWritingStats });
+}
+
+/** Tìm kiếm nhanh — chỉ chạy khi gõ từ 2 ký tự trở lên */
+export function useSearch(term: string) {
+  return useQuery({
+    queryKey: ['search', term],
+    queryFn: () => api.searchAll(term),
+    enabled: term.trim().length >= 2,
+  });
 }
 
 export function useDoc(slug: string | undefined) {
@@ -48,9 +70,24 @@ export function useTimelineDetail(id: string | undefined) {
 function invalidateBlog(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: ['posts'] });
   qc.invalidateQueries({ queryKey: ['post'] });
+  qc.invalidateQueries({ queryKey: ['posts-scheduled'] });
   qc.invalidateQueries({ queryKey: ['post-categories'] });
   qc.invalidateQueries({ queryKey: ['post-tags'] });
+  qc.invalidateQueries({ queryKey: ['post-series'] });
+  qc.invalidateQueries({ queryKey: ['writing-stats'] });
   qc.invalidateQueries({ queryKey: ['timeline-detail'] });
+}
+
+export function usePublishPostNow() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.publishPostNow(id),
+    onSuccess: (post) => {
+      invalidateBlog(qc);
+      toast.success(`Đã đăng "${post.title}"`);
+    },
+    onError: (err) => toast.error((err as Error).message),
+  });
 }
 
 export function useCreatePost() {

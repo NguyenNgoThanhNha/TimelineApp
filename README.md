@@ -125,7 +125,12 @@ npm run dev                 # http://localhost:5173 (proxy /api -> :3000)
 | PUT | `/api/timelines/:id` | Cập nhật |
 | DELETE | `/api/timelines/:id` | Xoá |
 | GET | `/api/posts` | Danh sách bài blog (`?search=&category=&tag=&timelineId=&page=&pageSize=`) |
-| GET | `/api/posts/categories` · `/api/posts/tags` | Chuyên mục / thẻ kèm số bài |
+| GET | `/api/posts/categories` · `/api/posts/tags` · `/api/posts/series` | Chuyên mục / thẻ / chuỗi bài kèm số bài |
+| GET | `/api/posts/stats` | Thống kê ghi chép: số bài, streak, task chưa viết gì |
+| GET | `/api/search?q=` | Tìm nhanh trong bài viết + tài liệu + task (hộp Ctrl+K) |
+| GET | `/api/posts/scheduled` | Hàng đợi bài đã hẹn giờ, chưa tới hạn |
+| POST | `/api/posts/scheduled/run` | Chạy tay job đăng bài tới hạn |
+| POST | `/api/posts/:id/publish` | Đăng ngay, bỏ lịch hẹn |
 | GET | `/api/posts/:slug` | Chi tiết bài — kèm task liên quan, tài liệu, link, bài liên quan |
 | POST/PUT/DELETE | `/api/posts` · `/api/posts/:id` | Soạn / sửa / xoá bài |
 | GET | `/api/docs?timelineId=&postId=` · `/api/docs/:slug` | Trang tài liệu nội bộ |
@@ -153,7 +158,7 @@ Mỗi task học xong thì viết lại — blog, tài liệu và task nối v�
 |---|---|---|
 | Danh sách bài viết | `/blog` | Card có ảnh bìa, chuyên mục, tóm tắt, thời gian đọc; tìm kiếm + phân trang |
 | Chi tiết bài viết | `/blog/:slug` | Markdown (bảng, checklist, code có tô màu), **mục lục dính** bên phải, thẻ, task liên quan, tài liệu đính kèm, nguồn tham khảo, bài liên quan |
-| Chuyên mục / Thẻ | `/blog/chuyen-muc`, `/blog/the` | Tổng hợp kèm số bài; bấm vào lọc danh sách |
+| Chuyên mục / Thẻ / Chuỗi bài | `/blog/chuyen-muc`, `/blog/the`, `/blog/chuoi` | Tổng hợp kèm số bài; bấm vào lọc danh sách |
 | Soạn bài | `/blog/moi`, `/blog/:slug/sua` | Editor Markdown + xem trước trực tiếp, tick chọn task để gắn |
 | Trang học tập của task | `/task/:id` | Mục tiêu "học xong nắm được gì", bài blog đã gắn, tài liệu nội bộ, link ngoài |
 | Trang tài liệu | `/tai-lieu/:slug` | Đọc tài liệu như bài viết, có mục lục và điều hướng trước/sau trong cùng task |
@@ -161,6 +166,16 @@ Mỗi task học xong thì viết lại — blog, tài liệu và task nối v�
 - **Liên kết hai chiều:** bài viết gắn nhiều task (`timelineIds`), từ task xem được mọi bài/tài liệu của nó.
 - **Mục tiêu học tập:** nhập trong form task trên Kanban, mỗi dòng là một mục tiêu.
 - **Quyền:** bài đã publish thì mọi người đọc được, bản nháp và tài liệu chỉ chủ sở hữu (và Admin) thấy; chỉ tác giả mới sửa/xoá được.
+
+**Chuỗi bài nhiều kỳ:** điền `series` + `seriesOrder` khi soạn (vd *99 Ngày .NET · kỳ 3*). Trang bài hiện mục lục chuỗi ở cột phải, nút *kỳ trước / kỳ sau* cuối bài; `/blog/chuoi/:ten` liệt kê cả chuỗi theo đúng thứ tự kỳ.
+
+**Tìm kiếm nhanh (Ctrl/Cmd + K):** một hộp tìm chung cho bài viết, trang tài liệu và task; điều hướng bằng phím mũi tên, Enter để mở.
+
+**Đọc bài:** thanh tiến độ đọc dưới header, nút copy trên mỗi code block, link neo cạnh mỗi heading để chia sẻ đúng mục.
+
+**Đóng vòng lặp học → viết:** thẻ Kanban hiện số bài/tài liệu đã gắn với task; Dashboard có khối *Ghi chép & viết lách* (bài đã đăng, tài liệu, bài tháng này, chờ đăng, chuỗi ngày viết liên tiếp) và danh sách *task đang học nhưng chưa ghi lại gì*.
+
+**Job tự đăng bài theo lịch** (`PostScheduleService`): khi soạn bài chọn *Hẹn giờ đăng* → bài giữ ở trạng thái nháp kèm `scheduledAt`. Job nền quét mỗi `POST_SCHEDULE_INTERVAL_MINUTES` phút (mặc định 30) và chạy một lần lúc khởi động để bù khoảng server tắt; tới hạn thì chuyển bài sang công khai và lấy chính giờ hẹn làm ngày đăng. Hàng đợi hiện ở đầu trang `/blog` kèm nút **Đăng ngay**. Tắt bằng `POST_SCHEDULE_ENABLED=false`.
 - Sau khi đổi schema nhớ chạy `npm run prisma:generate` và `npm run prisma:push` (tạo unique index cho `slug`).
 
 ---

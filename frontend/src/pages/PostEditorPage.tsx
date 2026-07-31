@@ -3,8 +3,14 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Eye, ListChecks, PenLine } from 'lucide-react';
-import { useCreatePost, usePost, usePostCategories, useUpdatePost } from '@/hooks/useBlog';
+import { ArrowLeft, CalendarClock, Eye, ListChecks, PenLine } from 'lucide-react';
+import {
+  useCreatePost,
+  usePost,
+  usePostCategories,
+  usePostSeries,
+  useUpdatePost,
+} from '@/hooks/useBlog';
 import { useTimelines } from '@/hooks/useTimelines';
 import { STATUS_META } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
@@ -23,17 +29,49 @@ const COVER_OPTIONS = [
   { value: 'gradient:indigo', label: 'Gradient chàm' },
 ];
 
-const schema = z.object({
-  title: z.string().min(1, 'Tiêu đề là bắt buộc').max(250),
-  category: z.string().min(1, 'Chuyên mục là bắt buộc').max(80),
-  summary: z.string().max(500).optional(),
-  tags: z.string().optional(),
-  coverImage: z.string().optional(),
-  published: z.boolean(),
-  content: z.string().min(1, 'Nội dung là bắt buộc'),
-});
+const PUBLISH_MODES = [
+  { value: 'now' as const, label: 'Đăng ngay', hint: 'Bài lên web ngay khi lưu' },
+  { value: 'draft' as const, label: 'Lưu nháp', hint: 'Chỉ mình bạn thấy, đăng lúc nào tuỳ bạn' },
+  {
+    value: 'schedule' as const,
+    label: 'Hẹn giờ đăng',
+    hint: 'Giữ nháp tới giờ hẹn, job nền tự đăng — không cần vào lại',
+  },
+];
+
+const schema = z
+  .object({
+    title: z.string().min(1, 'Tiêu đề là bắt buộc').max(250),
+    category: z.string().min(1, 'Chuyên mục là bắt buộc').max(80),
+    summary: z.string().max(500).optional(),
+    tags: z.string().optional(),
+    series: z.string().max(120).optional(),
+    // Input number trả về chuỗi nên nhận string rồi tự ép kiểu lúc gửi
+    seriesOrder: z.string().optional(),
+    coverImage: z.string().optional(),
+    // now = đăng ngay · draft = lưu nháp · schedule = hẹn giờ để job nền tự đăng
+    mode: z.enum(['now', 'draft', 'schedule']),
+    scheduledAt: z.string().optional(),
+    content: z.string().min(1, 'Nội dung là bắt buộc'),
+  })
+  .refine((d) => d.mode !== 'schedule' || !!d.scheduledAt, {
+    path: ['scheduledAt'],
+    message: 'Chọn thời điểm đăng',
+  })
+  .refine((d) => d.mode !== 'schedule' || !d.scheduledAt || new Date(d.scheduledAt) > new Date(), {
+    path: ['scheduledAt'],
+    message: 'Thời điểm hẹn phải ở tương lai',
+  });
 
 type FormValues = z.infer<typeof schema>;
+
+/** `Date` -> chuỗi cho input datetime-local (theo giờ máy, không lệch múi giờ). */
+function toLocalInput(value?: string | null): string {
+  if (!value) return '';
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
 
 const TEMPLATE = [
   '## Vấn đề',
@@ -64,6 +102,7 @@ export function PostEditorPage() {
 
   const { data: post, isLoading } = usePost(slug);
   const { data: categories } = usePostCategories();
+  const { data: seriesList } = usePostSeries();
   const { data: timelines } = useTimelines({});
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
@@ -84,8 +123,11 @@ export function PostEditorPage() {
       category: '',
       summary: '',
       tags: '',
+      series: '',
+      seriesOrder: '',
       coverImage: '',
-      published: true,
+      mode: 'now',
+      scheduledAt: '',
       content: TEMPLATE,
     },
   });
@@ -98,8 +140,11 @@ export function PostEditorPage() {
       category: post.category,
       summary: post.summary ?? '',
       tags: post.tags.join(', '),
+      series: post.series ?? '',
+      seriesOrder: post.seriesOrder ? String(post.seriesOrder) : '',
       coverImage: post.coverImage ?? '',
-      published: post.published,
+      mode: post.published ? 'now' : post.scheduledAt ? 'schedule' : 'draft',
+      scheduledAt: toLocalInput(post.scheduledAt),
       content: post.content,
     });
     setSelectedTasks(post.timelines?.map((t) => t.id) ?? []);
@@ -114,6 +159,7 @@ export function PostEditorPage() {
 
   const preview = watch('content');
   const previewTitle = watch('title');
+  const mode = watch('mode');
 
   const toggleTask = (id: string) => {
     setSelectedTasks((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
@@ -132,8 +178,14 @@ export function PostEditorPage() {
       tags: values.tags
         ? values.tags.split(',').map((t) => t.trim()).filter(Boolean)
         : [],
+      series: values.series?.trim() || null,
+      seriesOrder: values.seriesOrder ? Number(values.seriesOrder) : null,
       coverImage: values.coverImage || undefined,
-      published: values.published,
+      published: values.mode === 'now',
+      scheduledAt:
+        values.mode === 'schedule' && values.scheduledAt
+          ? new Date(values.scheduledAt).toISOString()
+          : null,
       content: values.content,
       timelineIds: selectedTasks,
     };
@@ -190,7 +242,15 @@ export function PostEditorPage() {
           </Button>
           <Button type="submit" form="post-form" disabled={pending}>
             <PenLine className="size-4" />
-            {pending ? 'Đang lưu…' : isEdit ? 'Lưu thay đổi' : 'Đăng bài'}
+            {pending
+              ? 'Đang lưu…'
+              : isEdit
+                ? 'Lưu thay đổi'
+                : mode === 'schedule'
+                  ? 'Đặt lịch đăng'
+                  : mode === 'draft'
+                    ? 'Lưu nháp'
+                    : 'Đăng bài'}
           </Button>
         </div>
       </div>
@@ -237,6 +297,28 @@ export function PostEditorPage() {
                 </div>
               </div>
 
+              <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
+                <div className="space-y-2">
+                  <Label htmlFor="series">Chuỗi bài</Label>
+                  <Input
+                    id="series"
+                    list="post-series-list"
+                    {...register('series')}
+                    placeholder="VD: 99 Ngày .NET (để trống nếu bài lẻ)"
+                  />
+                  <datalist id="post-series-list">
+                    {seriesList?.map((s) => (
+                      <option key={s.slug} value={s.name} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="seriesOrder">Kỳ số</Label>
+                  <Input id="seriesOrder" type="number" min={1} {...register('seriesOrder')} />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="summary">Tóm tắt</Label>
                 <Input
@@ -246,29 +328,61 @@ export function PostEditorPage() {
                 />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="coverImage">Ảnh bìa</Label>
-                  <select
-                    id="coverImage"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    {...register('coverImage')}
-                  >
-                    {COVER_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-end">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" className="size-4" {...register('published')} />
-                    Đăng công khai (bỏ tick để lưu nháp)
-                  </label>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="coverImage">Ảnh bìa</Label>
+                <select
+                  id="coverImage"
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  {...register('coverImage')}
+                >
+                  {COVER_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-panel">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CalendarClock className="size-4" />
+                Thời điểm đăng
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {PUBLISH_MODES.map((option) => (
+                <label
+                  key={option.value}
+                  className="flex cursor-pointer items-start gap-3 rounded-md border border-border/60 p-3 text-sm hover:border-primary/40"
+                >
+                  <input
+                    type="radio"
+                    value={option.value}
+                    className="mt-0.5 size-4"
+                    {...register('mode')}
+                  />
+                  <span>
+                    <span className="block font-medium">{option.label}</span>
+                    <span className="text-xs text-muted-foreground">{option.hint}</span>
+                  </span>
+                </label>
+              ))}
+
+              {mode === 'schedule' && (
+                <div className="space-y-2 pl-1">
+                  <Label htmlFor="scheduledAt">Đăng lúc *</Label>
+                  <Input id="scheduledAt" type="datetime-local" {...register('scheduledAt')} />
+                  {errors.scheduledAt && (
+                    <p className="text-xs text-destructive">{errors.scheduledAt.message}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Job nền quét mỗi 30 phút nên bài có thể lên trễ vài phút so với giờ hẹn.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

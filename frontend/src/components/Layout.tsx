@@ -1,7 +1,16 @@
 import { NavLink, Link, Outlet } from 'react-router-dom';
-import { BookOpen, CalendarDays, FolderTree, LayoutDashboard, LogOut, Tags } from 'lucide-react';
+import {
+  BookOpen,
+  CalendarDays,
+  FolderTree,
+  Layers,
+  LayoutDashboard,
+  LogOut,
+  Tags,
+} from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { Button } from '@/components/ui/button';
+import { CommandPalette } from '@/components/CommandPalette';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +26,7 @@ const FOOTER_LINKS = [
   { to: '/blog', label: 'Bài viết', icon: BookOpen },
   { to: '/blog/chuyen-muc', label: 'Chuyên mục', icon: FolderTree },
   { to: '/blog/the', label: 'Thẻ', icon: Tags },
+  { to: '/blog/chuoi', label: 'Chuỗi bài', icon: Layers },
 ];
 
 /** Khung chung: header điều hướng + nội dung route + footer. */
@@ -36,6 +46,8 @@ export function Layout() {
           </Link>
 
           <div className="flex items-center gap-2">
+            <CommandPalette />
+
             <nav className="flex items-center gap-1 rounded-lg border border-border/50 bg-background/50 p-1 backdrop-blur-sm">
               {NAV.map(({ to, label, icon: Icon, end }) => (
                 <NavLink

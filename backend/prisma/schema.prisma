@@ -83,10 +83,15 @@ model Post {
   coverImage  String?
   category    String
   tags        String[]   @default([])
+  // Chuỗi bài nhiều kỳ, vd "99 Ngày .NET" — seriesOrder là số thứ tự trong chuỗi
+  series      String?
+  seriesOrder Int?
   published   Boolean    @default(true)
   readMinutes Int        @default(1)
   views       Int        @default(0)
   publishedAt DateTime   @default(now())
+  // Hẹn giờ đăng: bài giữ ở trạng thái nháp cho tới khi job nền tới hạn phát hành
+  scheduledAt DateTime?
   authorId    String     @db.ObjectId
   author      User       @relation(fields: [authorId], references: [id])
   // Task liên quan (n-n) — từ blog nhảy sang task và ngược lại

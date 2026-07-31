@@ -1,5 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { MarkdownContent } from '@/components/blog/MarkdownContent';
+import { ReadingProgress } from '@/components/blog/ReadingProgress';
 import { extractHeadings, TableOfContents } from '@/components/blog/TableOfContents';
 import { Card } from '@/components/ui/card';
 
@@ -41,6 +42,8 @@ export function ArticleLayout({
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_16rem]">
+      <ReadingProgress />
+
       <article className="min-w-0">
         {breadcrumb && <div className="mb-4">{breadcrumb}</div>}
 

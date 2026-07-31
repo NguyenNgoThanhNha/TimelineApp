@@ -1,13 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
   IsBoolean,
+  IsDateString,
+  IsInt,
   IsMongoId,
   IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
+  Min,
 } from 'class-validator';
 
 export class CreatePostDto {
@@ -53,10 +57,32 @@ export class CreatePostDto {
   @ArrayMaxSize(20)
   tags?: string[];
 
+  @ApiPropertyOptional({ description: 'Tên chuỗi bài', example: '99 Ngày .NET' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  series?: string | null;
+
+  @ApiPropertyOptional({ description: 'Số thứ tự trong chuỗi', example: 3 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  seriesOrder?: number | null;
+
   @ApiPropertyOptional({ default: true })
   @IsOptional()
   @IsBoolean()
   published?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Hẹn giờ đăng (ISO). Nếu ở tương lai, bài được giữ nháp và job nền sẽ tự đăng khi tới hạn.',
+    example: '2026-08-05T08:00:00.000Z',
+  })
+  @IsOptional()
+  @IsDateString({}, { message: 'Thời điểm hẹn đăng không hợp lệ' })
+  scheduledAt?: string | null;
 
   @ApiPropertyOptional({ description: 'Id các task được gắn với bài viết' })
   @IsOptional()

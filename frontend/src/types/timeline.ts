@@ -19,6 +19,9 @@ export interface Timeline {
   category: string;
   // Học xong task này thì nắm được gì
   objectives?: string[];
+  // Số bài viết / trang tài liệu đã gắn với task (API danh sách trả kèm)
+  postCount?: number;
+  docCount?: number;
   userId?: string;
   createdAt: string;
   updatedAt: string;

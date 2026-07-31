@@ -8,10 +8,14 @@ import type {
   PostFilters,
   PostPage,
   PostRequest,
+  PostSummary,
   Resource,
   ResourceRequest,
+  SearchResult,
+  SeriesStat,
   TagStat,
   TimelineDetail,
+  WritingStats,
 } from '../types/blog';
 
 // Lớp API client cho blog / tài liệu — response đã được interceptor bóc khỏi envelope.
@@ -23,6 +27,7 @@ export async function getPosts(filters: PostFilters): Promise<PostPage> {
   if (filters.search) params.search = filters.search;
   if (filters.category) params.category = filters.category;
   if (filters.tag) params.tag = filters.tag;
+  if (filters.series) params.series = filters.series;
   if (filters.timelineId) params.timelineId = filters.timelineId;
   if (filters.page) params.page = filters.page;
   if (filters.pageSize) params.pageSize = filters.pageSize;
@@ -50,6 +55,18 @@ export async function deletePost(id: string): Promise<void> {
   await apiClient.delete(`/posts/${id}`);
 }
 
+/** Hàng đợi bài đã hẹn giờ, chưa tới hạn đăng */
+export async function getScheduledPosts(): Promise<PostSummary[]> {
+  const { data } = await apiClient.get<PostSummary[]>('/posts/scheduled');
+  return data;
+}
+
+/** Đăng ngay một bài đang hẹn giờ / đang nháp */
+export async function publishPostNow(id: string): Promise<PostSummary> {
+  const { data } = await apiClient.post<PostSummary>(`/posts/${id}/publish`);
+  return data;
+}
+
 export async function getPostCategories(): Promise<CategoryStat[]> {
   const { data } = await apiClient.get<CategoryStat[]>('/posts/categories');
   return data;
@@ -57,6 +74,22 @@ export async function getPostCategories(): Promise<CategoryStat[]> {
 
 export async function getPostTags(): Promise<TagStat[]> {
   const { data } = await apiClient.get<TagStat[]>('/posts/tags');
+  return data;
+}
+
+export async function getPostSeries(): Promise<SeriesStat[]> {
+  const { data } = await apiClient.get<SeriesStat[]>('/posts/series');
+  return data;
+}
+
+export async function getWritingStats(): Promise<WritingStats> {
+  const { data } = await apiClient.get<WritingStats>('/posts/stats');
+  return data;
+}
+
+/** Tìm nhanh trong bài viết, tài liệu và task (hộp Ctrl+K) */
+export async function searchAll(q: string): Promise<SearchResult> {
+  const { data } = await apiClient.get<SearchResult>('/search', { params: { q } });
   return data;
 }
 

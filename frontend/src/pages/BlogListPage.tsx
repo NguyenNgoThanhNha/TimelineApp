@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, FolderTree, PenLine, Search, Tags } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FolderTree, Layers, PenLine, Search, Tags } from 'lucide-react';
 import { usePostCategories, usePosts, usePostTags } from '@/hooks/useBlog';
 import { categoryColor } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { HeroBanner } from '@/components/HeroBanner';
 import { PostCard } from '@/components/blog/PostCard';
+import { ScheduledQueue } from '@/components/blog/ScheduledQueue';
 
 const PAGE_SIZE = 9;
 
@@ -17,7 +18,7 @@ const PAGE_SIZE = 9;
  *  /blog, /blog/chuyen-muc/:category, /blog/the/:tag
  */
 export function BlogListPage() {
-  const { category, tag } = useParams();
+  const { category, tag, series } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = Number(searchParams.get('page') ?? 1);
@@ -31,6 +32,7 @@ export function BlogListPage() {
     search: search || undefined,
     category: category ? decodeURIComponent(category) : undefined,
     tag: tag ? decodeURIComponent(tag) : undefined,
+    series: series ? decodeURIComponent(series) : undefined,
     page,
     pageSize: PAGE_SIZE,
   });
@@ -56,11 +58,17 @@ export function BlogListPage() {
     ? `Chuyên mục: ${decodeURIComponent(category)}`
     : tag
       ? `Thẻ: #${decodeURIComponent(tag)}`
-      : 'Bài viết';
+      : series
+        ? `Chuỗi bài: ${decodeURIComponent(series)}`
+        : 'Bài viết';
+
+  // Trang gốc /blog mới hiện hero + hàng đợi + thanh chuyên mục
+  const isRoot = !category && !tag && !series;
 
   return (
     <>
-      {!category && !tag && <HeroBanner view="blog" />}
+      {isRoot && <HeroBanner view="blog" />}
+      {isRoot && <ScheduledQueue />}
 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -93,6 +101,12 @@ export function BlogListPage() {
               <span className="hidden sm:inline">Thẻ</span>
             </Link>
           </Button>
+          <Button variant="outline" asChild>
+            <Link to="/blog/chuoi">
+              <Layers className="size-4" />
+              <span className="hidden sm:inline">Chuỗi bài</span>
+            </Link>
+          </Button>
           <Button asChild>
             <Link to="/blog/moi">
               <PenLine className="size-4" />
@@ -103,7 +117,7 @@ export function BlogListPage() {
       </div>
 
       {/* Thanh chuyên mục nhanh */}
-      {!!categories?.length && (
+      {isRoot && !!categories?.length && (
         <div className="mb-6 flex flex-wrap gap-2">
           <Link to="/blog">
             <Badge variant={category ? 'outline' : 'default'}>Tất cả</Badge>

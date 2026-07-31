@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { FileText, Link2, ListChecks } from 'lucide-react';
+import { CalendarClock, FileText, Layers, Link2, ListChecks } from 'lucide-react';
+import { formatSchedule } from '@/lib/format';
 import { categoryColor } from '@/lib/constants';
 import type { PostSummary } from '@/types/blog';
 import { Badge } from '@/components/ui/badge';
@@ -38,11 +39,26 @@ export function PostCard({ post, compact }: Props) {
               {post.category}
             </Badge>
           </Link>
-          {!post.published && (
-            <Badge variant="outline" className="border-dashed text-muted-foreground">
-              Bản nháp
-            </Badge>
+          {post.series && (
+            <Link to={`/blog/chuoi/${encodeURIComponent(post.series)}`}>
+              <Badge variant="secondary" className="gap-1">
+                <Layers className="size-3" />
+                {post.series}
+                {post.seriesOrder ? ` · kỳ ${post.seriesOrder}` : ''}
+              </Badge>
+            </Link>
           )}
+          {!post.published &&
+            (post.scheduledAt ? (
+              <Badge variant="outline" className="gap-1 border-dashed text-muted-foreground">
+                <CalendarClock className="size-3" />
+                Hẹn {formatSchedule(post.scheduledAt)}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="border-dashed text-muted-foreground">
+                Bản nháp
+              </Badge>
+            ))}
         </div>
 
         <Link to={`/blog/${post.slug}`} className="block">

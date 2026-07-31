@@ -1,7 +1,15 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { format } from 'date-fns';
-import { Calendar, GripVertical, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import {
+  BookOpen,
+  Calendar,
+  FileText,
+  GripVertical,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import type { Timeline } from '@/types/timeline';
 import { categoryColor } from '@/lib/constants';
@@ -137,7 +145,7 @@ export function KanbanCard({ item, isOverlay, onDetail, onEdit, onDelete }: Prop
         </CardContent>
       )}
 
-      <CardFooter className="px-3 pb-3 pt-1">
+      <CardFooter className="flex-wrap gap-x-3 gap-y-1 px-3 pb-3 pt-1">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Calendar className="size-3.5" />
           <span>
@@ -145,6 +153,20 @@ export function KanbanCard({ item, isOverlay, onDetail, onEdit, onDelete }: Prop
             {item.endDate ? ` → ${fmt(item.endDate)}` : ''}
           </span>
         </div>
+
+        {/* Đã ghi chép được gì cho task này */}
+        {!!item.postCount && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <BookOpen className="size-3.5" />
+            {item.postCount}
+          </span>
+        )}
+        {!!item.docCount && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <FileText className="size-3.5" />
+            {item.docCount}
+          </span>
+        )}
       </CardFooter>
     </Card>
   );

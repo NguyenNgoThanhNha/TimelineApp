@@ -35,7 +35,43 @@ export class TimelineService {
       };
     }
 
-    return this.prisma.timeline.findMany({ where, orderBy: { startDate: 'asc' } });
+    const items = await this.prisma.timeline.findMany({ where, orderBy: { startDate: 'asc' } });
+    return this.attachContentCounts(items);
+  }
+
+  /**
+   * Gắn số bài viết / tài liệu của từng task để Kanban hiện badge "đã ghi chép".
+   * Gom bằng 2 truy vấn rồi đếm trong bộ nhớ, tránh N+1 theo số task.
+   */
+  private async attachContentCounts<T extends { id: string }>(items: T[]) {
+    if (!items.length) return items.map((item) => ({ ...item, postCount: 0, docCount: 0 }));
+
+    const ids = items.map((item) => item.id);
+    const [posts, docs] = await Promise.all([
+      this.prisma.post.findMany({
+        where: { timelineIds: { hasSome: ids } },
+        select: { timelineIds: true },
+      }),
+      this.prisma.doc.findMany({
+        where: { timelineId: { in: ids } },
+        select: { timelineId: true },
+      }),
+    ]);
+
+    const postCounts = new Map<string, number>();
+    for (const post of posts) {
+      for (const id of post.timelineIds) postCounts.set(id, (postCounts.get(id) ?? 0) + 1);
+    }
+    const docCounts = new Map<string, number>();
+    for (const doc of docs) {
+      if (doc.timelineId) docCounts.set(doc.timelineId, (docCounts.get(doc.timelineId) ?? 0) + 1);
+    }
+
+    return items.map((item) => ({
+      ...item,
+      postCount: postCounts.get(item.id) ?? 0,
+      docCount: docCounts.get(item.id) ?? 0,
+    }));
   }
 
   /**

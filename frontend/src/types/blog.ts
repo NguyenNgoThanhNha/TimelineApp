@@ -49,13 +49,38 @@ export interface PostSummary {
   coverImage?: string | null;
   category: string;
   tags: string[];
+  // Chuỗi bài nhiều kỳ, vd "99 Ngày .NET" — kỳ số mấy
+  series?: string | null;
+  seriesOrder?: number | null;
   published: boolean;
   readMinutes: number;
   views: number;
   publishedAt: string;
+  // Có giá trị = bài đang chờ job nền tự đăng khi tới hạn
+  scheduledAt?: string | null;
   author?: Author;
   timelines?: TimelineRef[];
   _count?: { docs: number; resources: number };
+}
+
+/** Một kỳ trong chuỗi bài */
+export interface SeriesItem {
+  id: string;
+  slug: string;
+  title: string;
+  seriesOrder?: number | null;
+  published: boolean;
+}
+
+/** Điều hướng trong chuỗi bài, trả kèm trang chi tiết */
+export interface SeriesNav {
+  name: string;
+  slug: string;
+  items: SeriesItem[];
+  current: number;
+  total: number;
+  prev: SeriesItem | null;
+  next: SeriesItem | null;
 }
 
 /** Bài viết đầy đủ cho trang chi tiết */
@@ -64,6 +89,7 @@ export interface Post extends PostSummary {
   docs: DocRef[];
   resources: Resource[];
   related: PostSummary[];
+  seriesNav: SeriesNav | null;
 }
 
 export interface PostPage {
@@ -78,6 +104,7 @@ export interface PostFilters {
   search?: string;
   category?: string;
   tag?: string;
+  series?: string;
   timelineId?: string;
   page?: number;
   pageSize?: number;
@@ -91,7 +118,11 @@ export interface PostRequest {
   coverImage?: string;
   category: string;
   tags?: string[];
+  series?: string | null;
+  seriesOrder?: number | null;
   published?: boolean;
+  /** ISO string = hẹn giờ đăng; null = đăng ngay / gỡ lịch */
+  scheduledAt?: string | null;
   timelineIds?: string[];
 }
 
@@ -104,6 +135,39 @@ export interface CategoryStat {
 export interface TagStat {
   name: string;
   count: number;
+}
+
+export interface SeriesStat {
+  name: string;
+  slug: string;
+  count: number;
+}
+
+/** Thống kê thói quen ghi chép cho Dashboard */
+export interface WritingStats {
+  totalPosts: number;
+  publishedPosts: number;
+  draftPosts: number;
+  scheduledPosts: number;
+  totalDocs: number;
+  postsThisMonth: number;
+  writingStreak: number;
+  tasksWithoutContent: Array<{ id: string; title: string; category: string; status: string }>;
+  tasksWithoutContentTotal: number;
+}
+
+/** Kết quả tìm kiếm nhanh (Ctrl+K) */
+export interface SearchResult {
+  posts: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    category: string;
+    summary?: string | null;
+    series?: string | null;
+  }>;
+  docs: Array<{ id: string; slug: string; title: string; summary?: string | null }>;
+  timelines: Array<{ id: string; title: string; category: string; status: string }>;
 }
 
 /** Trang tài liệu nội bộ đầy đủ */

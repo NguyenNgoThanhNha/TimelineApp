@@ -80,6 +80,11 @@ export class TimelineSeederService implements OnModuleInit {
         .map((title) => idByTitle.get(title))
         .filter((id): id is string => Boolean(id));
 
+      // Bài có `scheduledInDays` nằm ở hàng đợi để minh hoạ job tự đăng theo lịch
+      const scheduledAt = seed.scheduledInDays
+        ? new Date(Date.now() + seed.scheduledInDays * 24 * 60 * 60 * 1000)
+        : null;
+
       const post = await this.prisma.post.create({
         data: {
           slug: seed.slug,
@@ -89,6 +94,10 @@ export class TimelineSeederService implements OnModuleInit {
           coverImage: seed.coverGradient,
           category: seed.category,
           tags: seed.tags,
+          series: seed.series ?? null,
+          seriesOrder: seed.seriesOrder ?? null,
+          published: !scheduledAt,
+          scheduledAt,
           readMinutes: estimateReadMinutes(seed.content),
           authorId,
           timelines: { connect: timelineIds.map((id) => ({ id })) },

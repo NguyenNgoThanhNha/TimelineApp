@@ -8,6 +8,7 @@ import { BlogListPage } from '@/pages/BlogListPage';
 import { CategoriesPage } from '@/pages/CategoriesPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { SeriesPage } from '@/pages/SeriesPage';
 import { TagsPage } from '@/pages/TagsPage';
 import { TimelinePage } from '@/pages/TimelinePage';
 
@@ -66,6 +67,8 @@ export default function App() {
             <Route path="blog/chuyen-muc/:category" element={<BlogListPage />} />
             <Route path="blog/the" element={<TagsPage />} />
             <Route path="blog/the/:tag" element={<BlogListPage />} />
+            <Route path="blog/chuoi" element={<SeriesPage />} />
+            <Route path="blog/chuoi/:series" element={<BlogListPage />} />
             <Route path="blog/:slug" element={<PostDetailPage />} />
             <Route path="blog/:slug/sua" element={<PostEditorPage />} />
 

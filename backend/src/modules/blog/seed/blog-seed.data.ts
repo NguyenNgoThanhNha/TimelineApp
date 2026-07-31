@@ -29,11 +29,15 @@ export interface PostSeed {
   category: string;
   tags: string[];
   coverGradient: string; // dùng làm coverImage dạng CSS gradient token (frontend tự render)
+  series?: string;
+  seriesOrder?: number;
   timelineTitles: string[];
   docs: DocSeed[];
   resources: ResourceSeed[];
   /** Mục tiêu học tập ghi ngược lại vào task đầu tiên trong `timelineTitles` */
   objectives?: string[];
+  /** Có giá trị = bài để ở hàng đợi, job nền sẽ tự đăng sau ngần này ngày */
+  scheduledInDays?: number;
 }
 
 // Gom nhiều dòng thành Markdown — tránh phải escape dấu backtick của code block.
@@ -48,6 +52,8 @@ export const BLOG_SEED: PostSeed[] = [
     category: 'Backend',
     tags: ['dotnet', 'aspnet-core', 'di'],
     coverGradient: 'gradient:violet',
+    series: '99 Ngày .NET',
+    seriesOrder: 1,
     timelineTitles: ['Tháng 2 — ASP.NET Core + EF Core + Ticketing CRUD'],
     objectives: [
       'Giải thích được IoC/DI và vì sao ASP.NET Core dựng sẵn container',
@@ -251,6 +257,8 @@ export const BLOG_SEED: PostSeed[] = [
     category: 'Thuật toán',
     tags: ['neetcode', 'sliding-window', 'two-pointers'],
     coverGradient: 'gradient:teal',
+    series: 'NeetCode Pattern',
+    seriesOrder: 1,
     timelineTitles: ['NeetCode Phase 1 — Nền tảng', '90 ngày đầu — Tuần 4: CQRS create ticket'],
     objectives: [
       'Nhận ra bài toán thuộc dạng Sliding Window qua đề bài',
@@ -569,5 +577,64 @@ export const BLOG_SEED: PostSeed[] = [
         note: 'So bài mình với sample band 7 cùng đề.',
       },
     ],
+  },
+
+  // Bài mẫu cho tính năng hẹn giờ: nằm ở hàng đợi, job nền tự đăng sau 1 ngày
+  {
+    slug: 'two-pointers-nguoc-chieu-hay-cung-chieu',
+    title: 'NeetCode Pattern — Two Pointers: ngược chiều hay cùng chiều?',
+    summary:
+      'Phân biệt hai kiểu Two Pointers và dấu hiệu nhận biết trong đề bài. Bài tiếp theo của chuỗi pattern.',
+    category: 'Thuật toán',
+    tags: ['neetcode', 'two-pointers'],
+    coverGradient: 'gradient:sky',
+    series: 'NeetCode Pattern',
+    seriesOrder: 2,
+    timelineTitles: ['NeetCode Phase 1 — Nền tảng'],
+    scheduledInDays: 1,
+    content: md(
+      'Bài này nằm trong hàng đợi — job nền sẽ tự đăng khi tới giờ hẹn.',
+      '',
+      '## Hai kiểu Two Pointers',
+      '',
+      '| Kiểu | Con trỏ | Điều kiện dùng |',
+      '| --- | --- | --- |',
+      '| Ngược chiều | `left = 0`, `right = n - 1` | Mảng **đã sắp xếp**, tìm cặp thoả điều kiện |',
+      '| Cùng chiều | `slow`, `fast` cùng đi từ trái | Lọc tại chỗ, phát hiện chu trình, khử trùng lặp |',
+      '',
+      '## Ngược chiều — Two Sum II',
+      '',
+      '```python',
+      'def two_sum_sorted(nums, target):',
+      '    left, right = 0, len(nums) - 1',
+      '    while left < right:',
+      '        total = nums[left] + nums[right]',
+      '        if total == target:',
+      '            return [left + 1, right + 1]',
+      '        if total < target:',
+      '            left += 1      # cần tổng lớn hơn',
+      '        else:',
+      '            right -= 1     # cần tổng nhỏ hơn',
+      '    return []',
+      '```',
+      '',
+      '## Cùng chiều — xoá phần tử tại chỗ',
+      '',
+      '```python',
+      'def remove_element(nums, val):',
+      '    slow = 0',
+      '    for fast in range(len(nums)):',
+      '        if nums[fast] != val:',
+      '            nums[slow] = nums[fast]',
+      '            slow += 1',
+      '    return slow',
+      '```',
+      '',
+      '## Kết luận',
+      '',
+      'Thấy "mảng đã sắp xếp" thì nghĩ ngay tới ngược chiều; thấy "sửa tại chỗ, O(1) bộ nhớ" thì nghĩ tới cùng chiều.',
+    ),
+    docs: [],
+    resources: [],
   },
 ];

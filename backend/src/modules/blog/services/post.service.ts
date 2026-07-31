@@ -62,15 +62,24 @@ export class PostService {
       filters.push({ category: { in: matched.length ? matched : [query.category] } });
     }
     if (query.tag) filters.push({ tags: { has: query.tag } });
+    if (query.series) {
+      const names = await this.matchSeriesNames(query.series);
+      filters.push({ series: { in: names } });
+    }
     if (query.timelineId) filters.push({ timelineIds: { has: query.timelineId } });
 
     const where: Prisma.PostWhereInput = { AND: filters };
+
+    // Xem theo chuỗi thì đọc từ kỳ 1 trở đi, còn lại là bài mới nhất trước
+    const orderBy: Prisma.PostOrderByWithRelationInput[] = query.series
+      ? [{ seriesOrder: 'asc' }, { publishedAt: 'asc' }]
+      : [{ publishedAt: 'desc' }];
 
     const [items, total] = await Promise.all([
       this.prisma.post.findMany({
         where,
         include: POST_LIST_INCLUDE,
-        orderBy: { publishedAt: 'desc' },
+        orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
@@ -97,8 +106,53 @@ export class PostService {
     const views = post.views + 1;
     await this.prisma.post.update({ where: { id: post.id }, data: { views } }).catch(() => undefined);
 
-    const related = await this.findRelated(user, post);
-    return { ...post, views, related };
+    const [related, seriesNav] = await Promise.all([
+      this.findRelated(user, post),
+      this.findSeriesNav(user, post),
+    ]);
+    return { ...post, views, related, seriesNav };
+  }
+
+  /**
+   * Điều hướng trong chuỗi bài: danh sách các kỳ + kỳ trước / kỳ sau.
+   * Trả null nếu bài không thuộc chuỗi nào.
+   */
+  private async findSeriesNav(
+    user: CurrentUserPayload,
+    post: { id: string; series: string | null },
+  ) {
+    if (!post.series) return null;
+
+    const items = await this.prisma.post.findMany({
+      where: { AND: [this.readScope(user), { series: post.series }] },
+      select: { id: true, slug: true, title: true, seriesOrder: true, published: true },
+      orderBy: [{ seriesOrder: 'asc' }, { publishedAt: 'asc' }],
+    });
+
+    const index = items.findIndex((p) => p.id === post.id);
+    return {
+      name: post.series,
+      slug: slugify(post.series),
+      items,
+      current: index + 1,
+      total: items.length,
+      prev: index > 0 ? items[index - 1] : null,
+      next: index >= 0 && index < items.length - 1 ? items[index + 1] : null,
+    };
+  }
+
+  /** Danh sách chuỗi bài kèm số kỳ — cho trang Chuỗi bài. */
+  async getSeries(user: CurrentUserPayload) {
+    const rows = await this.prisma.post.groupBy({
+      by: ['series'],
+      where: { AND: [this.readScope(user), { series: { not: null } }] },
+      _count: { _all: true },
+    });
+
+    return rows
+      .filter((r): r is typeof r & { series: string } => !!r.series)
+      .map((r) => ({ name: r.series, slug: slugify(r.series), count: r._count._all }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
   }
 
   /** Bài liên quan: ưu tiên cùng chuyên mục hoặc trùng thẻ. */
@@ -120,6 +174,9 @@ export class PostService {
 
   async create(user: CurrentUserPayload, dto: CreatePostDto) {
     const slug = await this.uniqueSlug(dto.slug || dto.title);
+    const scheduledAt = dto.scheduledAt ? new Date(dto.scheduledAt) : null;
+    const isScheduled = this.isFuture(scheduledAt);
+
     return this.prisma.post.create({
       data: {
         slug,
@@ -129,7 +186,11 @@ export class PostService {
         coverImage: dto.coverImage?.trim() || null,
         category: dto.category.trim(),
         tags: this.normalizeTags(dto.tags),
-        published: dto.published ?? true,
+        series: dto.series?.trim() || null,
+        seriesOrder: dto.series?.trim() ? dto.seriesOrder ?? null : null,
+        // Hẹn giờ ở tương lai -> giữ nháp, job nền sẽ đăng khi tới hạn
+        published: isScheduled ? false : dto.published ?? true,
+        scheduledAt: isScheduled ? scheduledAt : null,
         readMinutes: estimateReadMinutes(dto.content),
         authorId: user.userId,
         ...(dto.timelineIds?.length && {
@@ -156,8 +217,32 @@ export class PostService {
       ...(dto.published !== undefined && { published: dto.published }),
     };
 
+    // Gỡ chuỗi thì bỏ luôn số thứ tự để không còn kỳ mồ côi
+    if (dto.series !== undefined) {
+      const series = dto.series?.trim() || null;
+      data.series = series;
+      data.seriesOrder = series ? dto.seriesOrder ?? current.seriesOrder ?? null : null;
+    } else if (dto.seriesOrder !== undefined) {
+      data.seriesOrder = current.series ? dto.seriesOrder : null;
+    }
+
     if (dto.slug !== undefined && slugify(dto.slug) !== current.slug) {
       data.slug = await this.uniqueSlug(dto.slug);
+    }
+
+    // Lịch đăng: hẹn giờ tương lai thì quay về nháp, gỡ lịch hoặc đăng tay thì huỷ hẹn
+    if (dto.scheduledAt !== undefined) {
+      const scheduledAt = dto.scheduledAt ? new Date(dto.scheduledAt) : null;
+      if (this.isFuture(scheduledAt)) {
+        data.scheduledAt = scheduledAt;
+        data.published = false;
+      } else {
+        data.scheduledAt = null;
+      }
+    }
+    if (dto.published === true && !this.isFuture(data.scheduledAt as Date | null)) {
+      data.published = true;
+      data.scheduledAt = null;
     }
 
     // Gắn/bỏ task: gửi mảng mới là thay thế toàn bộ liên kết hiện tại
@@ -180,6 +265,31 @@ export class PostService {
     return { id };
   }
 
+  /** Hàng đợi bài đã hẹn giờ nhưng chưa tới hạn — hiển thị ở trang blog cho tác giả. */
+  async findScheduled(user: CurrentUserPayload) {
+    const items = await this.prisma.post.findMany({
+      where: {
+        published: false,
+        scheduledAt: { not: null },
+        ...(user.role === 'Admin' ? {} : { authorId: user.userId }),
+      },
+      include: POST_LIST_INCLUDE,
+      orderBy: { scheduledAt: 'asc' },
+    });
+    return items.map((p) => this.stripContent(p));
+  }
+
+  /** Đăng ngay một bài đang hẹn giờ / đang nháp, không chờ job nền. */
+  async publishNow(user: CurrentUserPayload, id: string) {
+    await this.getEditableOrThrow(user, id);
+    const post = await this.prisma.post.update({
+      where: { id },
+      data: { published: true, publishedAt: new Date(), scheduledAt: null },
+      include: POST_LIST_INCLUDE,
+    });
+    return this.stripContent(post);
+  }
+
   /** Danh sách chuyên mục kèm số bài — dùng cho trang Chuyên mục và bộ lọc. */
   async getCategories(user: CurrentUserPayload) {
     const rows = await this.prisma.post.groupBy({
@@ -190,6 +300,86 @@ export class PostService {
     return rows
       .map((r) => ({ name: r.category, slug: slugify(r.category), count: r._count._all }))
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }
+
+  /**
+   * Thống kê thói quen ghi chép cho Dashboard: số bài, chuỗi ngày viết liên tiếp
+   * và những task đang học nhưng chưa có bài/tài liệu nào.
+   */
+  async getWritingStats(user: CurrentUserPayload) {
+    const mine = user.role === 'Admin' ? {} : { authorId: user.userId };
+
+    const [posts, docCount, timelines, docsByTimeline] = await Promise.all([
+      this.prisma.post.findMany({
+        where: mine,
+        select: { published: true, scheduledAt: true, publishedAt: true, timelineIds: true },
+      }),
+      this.prisma.doc.count({
+        where: user.role === 'Admin' ? {} : { ownerId: user.userId },
+      }),
+      this.prisma.timeline.findMany({
+        where: {
+          ...(user.role === 'Admin' ? {} : { userId: user.userId }),
+          status: { in: ['InProgress', 'Planned'] },
+        },
+        select: { id: true, title: true, category: true, status: true },
+        orderBy: { startDate: 'asc' },
+      }),
+      this.prisma.doc.findMany({
+        where: { ...(user.role === 'Admin' ? {} : { ownerId: user.userId }), timelineId: { not: null } },
+        select: { timelineId: true },
+      }),
+    ]);
+
+    const published = posts.filter((p) => p.published);
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // Task đã có ít nhất một bài viết hoặc một trang tài liệu
+    const covered = new Set<string>();
+    posts.forEach((p) => p.timelineIds.forEach((id) => covered.add(id)));
+    docsByTimeline.forEach((d) => d.timelineId && covered.add(d.timelineId));
+
+    return {
+      totalPosts: posts.length,
+      publishedPosts: published.length,
+      draftPosts: posts.filter((p) => !p.published && !p.scheduledAt).length,
+      scheduledPosts: posts.filter((p) => !p.published && !!p.scheduledAt).length,
+      totalDocs: docCount,
+      postsThisMonth: published.filter((p) => p.publishedAt >= startOfMonth).length,
+      writingStreak: this.calcStreak(published.map((p) => p.publishedAt)),
+      tasksWithoutContent: timelines.filter((t) => !covered.has(t.id)).slice(0, 8),
+      tasksWithoutContentTotal: timelines.filter((t) => !covered.has(t.id)).length,
+    };
+  }
+
+  /** Khoá ngày theo giờ máy chủ (không dùng ISO/UTC để không lệch ngày ở múi giờ +07). */
+  private dayKey(date: Date): string {
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
+  }
+
+  /** Số ngày viết liên tiếp tính lùi từ hôm nay (hôm nay chưa viết thì tính từ hôm qua). */
+  private calcStreak(dates: Date[]): number {
+    if (!dates.length) return 0;
+
+    const days = new Set(dates.map((d) => this.dayKey(new Date(d))));
+    const cursor = new Date();
+    cursor.setHours(0, 0, 0, 0);
+
+    // Chưa viết hôm nay vẫn giữ chuỗi nếu hôm qua có viết
+    if (!days.has(this.dayKey(cursor))) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    let streak = 0;
+    while (days.has(this.dayKey(cursor))) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
   }
 
   /** Danh sách thẻ kèm số bài (tags là mảng nên gom trong bộ nhớ). */
@@ -213,6 +403,25 @@ export class PostService {
   private stripContent<T extends { content: string }>(post: T): Omit<T, 'content'> {
     const { content: _content, ...rest } = post;
     return rest;
+  }
+
+  /** Cho phép lọc chuỗi bằng cả tên ("99 Ngày .NET") lẫn slug ("99-ngay-net"). */
+  private async matchSeriesNames(value: string): Promise<string[]> {
+    const rows = await this.prisma.post.findMany({
+      where: { series: { not: null } },
+      select: { series: true },
+      distinct: ['series'],
+    });
+    const target = slugify(value);
+    const matched = rows
+      .map((r) => r.series)
+      .filter((name): name is string => !!name && slugify(name) === target);
+    return matched.length ? matched : [value];
+  }
+
+  /** Thời điểm hẹn có nằm ở tương lai không (quá khứ = đăng luôn). */
+  private isFuture(value?: Date | null): boolean {
+    return !!value && value.getTime() > Date.now();
   }
 
   private normalizeTags(tags?: string[]): string[] {

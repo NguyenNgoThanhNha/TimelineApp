@@ -19,6 +19,11 @@ export class QueryPostDto {
   @IsString()
   tag?: string;
 
+  @ApiPropertyOptional({ description: 'Lọc theo chuỗi bài (tên hoặc slug)' })
+  @IsOptional()
+  @IsString()
+  series?: string;
+
   @ApiPropertyOptional({ description: 'Chỉ lấy bài gắn với task này' })
   @IsOptional()
   @IsMongoId({ message: 'Id task không hợp lệ' })
