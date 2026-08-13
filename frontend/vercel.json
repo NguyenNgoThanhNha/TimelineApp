@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "comment": "SPA fallback: mọi route của React Router trả về index.html. Vercel chỉ chạy rewrite SAU khi không tìm thấy file thật, nên /assets/* vẫn được phục vụ bình thường. Loại trừ /api để nếu quên đặt VITE_API_URL thì request lỗi 404 rõ ràng, thay vì nhận về HTML rồi báo lỗi khó hiểu.",
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
