@@ -6,6 +6,7 @@ import {
   Layers,
   LayoutDashboard,
   LogOut,
+  Languages,
   Tags,
 } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
@@ -20,6 +21,7 @@ const NAV = [
   { to: '/', label: 'Kanban', icon: CalendarDays, end: true },
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: false },
   { to: '/blog', label: 'Blog', icon: BookOpen, end: false },
+  { to: '/tu-vung', label: 'Từ vựng', icon: Languages, end: false },
 ];
 
 const FOOTER_LINKS = [

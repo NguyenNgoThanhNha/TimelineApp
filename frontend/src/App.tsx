@@ -11,6 +11,8 @@ import { NotFoundPage } from '@/pages/NotFoundPage';
 import { SeriesPage } from '@/pages/SeriesPage';
 import { TagsPage } from '@/pages/TagsPage';
 import { TimelinePage } from '@/pages/TimelinePage';
+import { VocabularyListPage } from '@/pages/VocabularyListPage';
+import { VocabularyTodayPage } from '@/pages/VocabularyTodayPage';
 
 // Các trang đọc/soạn Markdown kéo theo bộ tô màu cú pháp (nặng) -> tách chunk riêng
 const PostDetailPage = lazy(() =>
@@ -24,6 +26,15 @@ const DocDetailPage = lazy(() =>
 );
 const TaskDetailPage = lazy(() =>
   import('@/pages/TaskDetailPage').then((m) => ({ default: m.TaskDetailPage })),
+);
+const VocabularyDetailPage = lazy(() =>
+  import('@/pages/VocabularyDetailPage').then((m) => ({ default: m.VocabularyDetailPage })),
+);
+const VocabularyDashboardPage = lazy(() =>
+  import('@/pages/VocabularyDashboardPage').then((m) => ({ default: m.VocabularyDashboardPage })),
+);
+const VocabularyReviewPage = lazy(() =>
+  import('@/pages/VocabularyReviewPage').then((m) => ({ default: m.VocabularyReviewPage })),
 );
 
 function PageLoader() {
@@ -71,6 +82,13 @@ export default function App() {
             <Route path="blog/chuoi/:series" element={<BlogListPage />} />
             <Route path="blog/:slug" element={<PostDetailPage />} />
             <Route path="blog/:slug/sua" element={<PostEditorPage />} />
+
+            {/* Từ vựng tiếng Anh — route tĩnh khai báo trước route :id */}
+            <Route path="tu-vung" element={<VocabularyTodayPage />} />
+            <Route path="tu-vung/danh-sach" element={<VocabularyListPage />} />
+            <Route path="tu-vung/thong-ke" element={<VocabularyDashboardPage />} />
+            <Route path="tu-vung/on-tap" element={<VocabularyReviewPage />} />
+            <Route path="tu-vung/:id" element={<VocabularyDetailPage />} />
 
             {/* Tài liệu đính kèm và trang chi tiết task */}
             <Route path="tai-lieu/:slug" element={<DocDetailPage />} />

@@ -33,18 +33,90 @@ enum ResourceType {
   Other
 }
 
+// ---------- Từ vựng tiếng Anh ----------
+
+/// Loại từ. Một từ có thể có nhiều loại (address = Noun + Verb) nên enum này
+/// nằm ở VocabularyMeaning chứ không phải ở Vocabulary.
+enum PartOfSpeech {
+  Noun
+  Verb
+  Adjective
+  Adverb
+  Pronoun
+  Preposition
+  Conjunction
+  Interjection
+  PhrasalVerb
+  Idiom
+  Phrase
+  Other
+}
+
+enum CefrLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+/// Trạng thái học: Mới học / Đang học / Khá nhớ / Đã thuộc
+enum LearningStatus {
+  New
+  Learning
+  Familiar
+  Mastered
+}
+
+/// Trạng thái lấy dữ liệu từ điển. Từ luôn được lưu trước với Pending,
+/// enrich chạy nền -> không bao giờ mất từ khi API lỗi.
+enum EnrichmentStatus {
+  Pending
+  Completed
+  Failed
+}
+
+enum VocabularyRelationType {
+  Synonym
+  Antonym
+  WordForm // dạng khác của từ: achievement (noun), achievable (adjective)…
+}
+
+enum ExampleDifficulty {
+  Basic
+  Intermediate
+  Advanced
+}
+
+enum PronunciationAccent {
+  UK
+  US
+  Other
+}
+
+/// Kết quả tự đánh giá khi ôn flashcard (dùng cho SM-2)
+enum ReviewResult {
+  Again
+  Hard
+  Good
+  Easy
+}
+
 model User {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  email     String     @unique
-  password  String
-  name      String
-  role      Role       @default(User)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  timelines Timeline[]
-  posts     Post[]
-  docs      Doc[]
-  resources Resource[]
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  email             String             @unique
+  password          String
+  name              String
+  role              Role               @default(User)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  timelines         Timeline[]
+  posts             Post[]
+  docs              Doc[]
+  resources         Resource[]
+  vocabularies      Vocabulary[]
+  vocabularyReviews VocabularyReview[]
 
   @@map("users")
 }
@@ -141,4 +213,135 @@ model Resource {
   createdAt  DateTime     @default(now())
 
   @@map("resources")
+}
+
+/// Một từ vựng của MỘT user. Dữ liệu chi tiết (phiên âm / nghĩa / ví dụ / quan hệ)
+/// tách sang các collection riêng, không nhồi vào JSON field.
+model Vocabulary {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  word    String // giữ nguyên cách người dùng gõ, vd "Achieve"
+  /// word.trim().toLowerCase() — khoá chống trùng không phân biệt hoa/thường
+  wordKey String
+
+  cefrLevel      CefrLevel? // null nếu không có nguồn đáng tin cậy, không tự đoán
+  /// Ngày học (đã chuẩn hoá về 00:00 giờ Việt Nam) -> group theo ngày chính xác
+  learnedDate    DateTime
+  learningStatus LearningStatus @default(New)
+  note           String?
+
+  enrichmentStatus EnrichmentStatus @default(Pending)
+  enrichmentError  String?
+  /// Gợi ý chính tả khi từ điển không tìm thấy từ ("achive" -> "achieve")
+  enrichmentSuggestions String[]     @default([])
+  enrichedAt       DateTime?
+
+  // ----- Spaced repetition (SM-2) -----
+  lastReviewDate DateTime?
+  nextReviewDate DateTime?
+  reviewCount    Int       @default(0)
+  correctCount   Int       @default(0)
+  incorrectCount Int       @default(0)
+  /// Số lần ôn đúng liên tiếp (repetition của SM-2), cũng dùng làm mức thành thạo 0..5
+  masteryLevel   Int       @default(0)
+  easeFactor     Float     @default(2.5)
+  intervalDays   Int       @default(0)
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  pronunciations VocabularyPronunciation[]
+  meanings       VocabularyMeaning[]
+  relations      VocabularyRelation[]
+  reviews        VocabularyReview[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Mỗi user chỉ có duy nhất một bản ghi cho một từ
+  @@unique([userId, wordKey])
+  @@index([userId, learnedDate])
+  @@index([userId, nextReviewDate])
+  @@map("vocabularies")
+}
+
+/// Phiên âm theo giọng (UK/US). audioUrl ưu tiên lấy từ dictionary API,
+/// nếu không có thì frontend fallback sang Text-to-Speech.
+model VocabularyPronunciation {
+  id           String              @id @default(auto()) @map("_id") @db.ObjectId
+  accent       PronunciationAccent
+  ipa          String?
+  audioUrl     String?
+  vocabularyId String              @db.ObjectId
+  vocabulary   Vocabulary          @relation(fields: [vocabularyId], references: [id])
+
+  @@index([vocabularyId])
+  @@map("vocabulary_pronunciations")
+}
+
+/// Nghĩa gắn với MỘT loại từ. "approach" có 2 bản ghi: Verb và Noun.
+model VocabularyMeaning {
+  id                String       @id @default(auto()) @map("_id") @db.ObjectId
+  partOfSpeech      PartOfSpeech
+  englishDefinition String?
+  vietnameseMeaning String?
+  order             Int          @default(0)
+
+  vocabularyId String     @db.ObjectId
+  vocabulary   Vocabulary @relation(fields: [vocabularyId], references: [id])
+
+  examples VocabularyExample[]
+
+  @@index([vocabularyId])
+  @@map("vocabulary_meanings")
+}
+
+/// Câu ví dụ của một nghĩa, độ khó tăng dần Basic -> Intermediate -> Advanced.
+model VocabularyExample {
+  id                    String            @id @default(auto()) @map("_id") @db.ObjectId
+  englishSentence       String
+  vietnameseTranslation String?
+  difficultyLevel       ExampleDifficulty @default(Basic)
+  order                 Int               @default(0)
+
+  vocabularyMeaningId String            @db.ObjectId
+  meaning             VocabularyMeaning @relation(fields: [vocabularyMeaningId], references: [id])
+
+  @@index([vocabularyMeaningId])
+  @@map("vocabulary_examples")
+}
+
+/// Từ đồng nghĩa / trái nghĩa / dạng khác. Lưu dạng chuỗi (chưa chắc user đã học từ đó);
+/// frontend đối chiếu relatedWordKey với bộ từ của user để biết nên mở chi tiết hay cho thêm mới.
+model VocabularyRelation {
+  id             String                 @id @default(auto()) @map("_id") @db.ObjectId
+  relatedWord    String
+  relatedWordKey String
+  relationType   VocabularyRelationType
+  partOfSpeech   PartOfSpeech? // chỉ dùng cho WordForm: achievement (Noun)
+
+  vocabularyId String     @db.ObjectId
+  vocabulary   Vocabulary @relation(fields: [vocabularyId], references: [id])
+
+  @@index([vocabularyId])
+  @@map("vocabulary_relations")
+}
+
+/// Lịch sử ôn tập — nguồn dữ liệu cho thống kê và cho thuật toán spaced repetition.
+model VocabularyReview {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  reviewDate     DateTime     @default(now())
+  /// reviewDate đã chuẩn hoá về 00:00 giờ Việt Nam -> group/streak theo ngày
+  reviewDay      DateTime
+  result         ReviewResult
+  nextReviewDate DateTime?
+  intervalDays   Int          @default(0)
+
+  vocabularyId String     @db.ObjectId
+  vocabulary   Vocabulary @relation(fields: [vocabularyId], references: [id])
+  userId       String     @db.ObjectId
+  user         User       @relation(fields: [userId], references: [id])
+
+  @@index([userId, reviewDay])
+  @@index([vocabularyId])
+  @@map("vocabulary_reviews")
 }

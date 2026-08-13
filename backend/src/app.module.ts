@@ -5,6 +5,7 @@ import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { TimelineModule } from './modules/timeline/timeline.module';
+import { VocabularyModule } from './modules/vocabulary/vocabulary.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TimelineModule } from './modules/timeline/timeline.module';
     AuthModule,
     TimelineModule,
     BlogModule,
+    VocabularyModule,
   ],
 })
 export class AppModule {}

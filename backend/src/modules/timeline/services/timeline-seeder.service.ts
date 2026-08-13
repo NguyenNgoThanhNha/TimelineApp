@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma, Role, TimelineStatus } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { estimateReadMinutes } from '../../../common/slug.util';
@@ -6,24 +7,38 @@ import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { BLOG_SEED } from '../../blog/seed/blog-seed.data';
 
 /**
- * Reset database khi backend khởi động rồi seed lại dữ liệu roadmap.
+ * Dựng bộ dữ liệu demo dựa trên folder Roadmap.
  *  - admin@timeline.local / Admin@123  (Admin — xem tất cả)
  *  - user@timeline.local  / User@123   (User  — chỉ xem của mình)
  *
- * Lưu ý: service này cố ý xoá toàn bộ users/timelines hiện tại để tạo bộ dữ liệu
- * mới dựa trên folder Roadmap.
+ * Mặc định CHỈ seed khi database còn trống — dữ liệu người dùng tự nhập
+ * (timeline, bài viết, từ vựng) không bao giờ bị mất khi khởi động lại backend.
+ * Đặt SEED_RESET_ON_STARTUP=true nếu muốn xoá sạch và dựng lại bộ demo.
  */
 @Injectable()
 export class TimelineSeederService implements OnModuleInit {
   private readonly logger = new Logger(TimelineSeederService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {}
 
   async onModuleInit() {
+    const resetOnStartup = this.config.get<boolean>('seed.resetOnStartup') ?? false;
     const maxAttempts = 8;
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        await this.resetDatabase();
+        if (resetOnStartup) {
+          this.logger.warn('SEED_RESET_ON_STARTUP=true -> xoá toàn bộ dữ liệu hiện có.');
+          await this.resetDatabase();
+        } else if ((await this.prisma.user.count()) > 0) {
+          this.logger.log(
+            'Database đã có dữ liệu -> bỏ qua seed. Đặt SEED_RESET_ON_STARTUP=true nếu muốn dựng lại bộ demo.',
+          );
+          return;
+        }
 
         const [adminPwd, userPwd] = await Promise.all([
           bcrypt.hash('Admin@123', 10),
@@ -41,7 +56,7 @@ export class TimelineSeederService implements OnModuleInit {
         await this.seedBlog(demo.id);
 
         this.logger.log(
-          'Đã reset DB và seed 2 tài khoản demo + timeline từ Roadmap + bài blog/tài liệu mẫu.',
+          `${resetOnStartup ? 'Đã reset DB và seed' : 'Database trống -> đã seed'} 2 tài khoản demo + timeline từ Roadmap + bài blog/tài liệu mẫu.`,
         );
         return;
       } catch (err) {
@@ -61,6 +76,13 @@ export class TimelineSeederService implements OnModuleInit {
     await this.prisma.doc.deleteMany({});
     await this.prisma.post.deleteMany({});
     await this.prisma.timeline.deleteMany({});
+    // Từ vựng cũng thuộc về user -> phải dọn cùng, nếu không sẽ còn lại bản ghi mồ côi
+    await this.prisma.vocabularyExample.deleteMany({});
+    await this.prisma.vocabularyMeaning.deleteMany({});
+    await this.prisma.vocabularyPronunciation.deleteMany({});
+    await this.prisma.vocabularyRelation.deleteMany({});
+    await this.prisma.vocabularyReview.deleteMany({});
+    await this.prisma.vocabulary.deleteMany({});
     await this.prisma.user.deleteMany({});
   }
 
